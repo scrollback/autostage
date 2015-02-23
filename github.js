@@ -1,6 +1,6 @@
 var fs = require('fs-extra'),
     base_dir = '/home/scrollback/scrollback',
-    config = require('./config'),
+    config = require('./config.js'),
     teamMembers = config.teamMembers;
 
 module.exports.createDomain = function (user, branch) { 
@@ -18,7 +18,6 @@ module.exports.createDomain = function (user, branch) {
                 newdata.push(line);
             });
             data = newdata.join("\n");
-            callback();
             fs.writeFile(path +"-"+ branch, data, function (err) {
                 if (err) throw err;
             });
@@ -31,7 +30,7 @@ module.exports.createDomain = function (user, branch) {
 
             changeFile(config.nginx_path + "scrollback", /server_name /, "stage.scrollback.io",
                        branch + ".scrollback.io");
-
+            
             // change config.
             changeFile(base_dir +"-"+ branch + '/server-config.js',
                        /stage.scrollback.io/, "stage.scrollback.io", branch + ".scrollback.io");
