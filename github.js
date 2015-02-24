@@ -28,10 +28,10 @@ module.exports.createDomain = function (user, branch, pull_request_no) {
     };
 
     if (teamMembers.indexOf(user) > -1) {
-        function priority(i) {
+        function run(i) {
             if (i === arr.length) return;
             arr[i](function () {
-                priority(i + 1);
+                run(i + 1);
             });
         };
 
@@ -53,7 +53,7 @@ module.exports.createDomain = function (user, branch, pull_request_no) {
                 "/home/scrollback/scrollback-" + branch, callback);
         });
 
-        priority(0);
+        run(0);
 
         fs.copy(base_dir, base_dir + "-" + branch, function (err) {
             if (err) return console.error(err);
