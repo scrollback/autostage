@@ -18,9 +18,9 @@ var http = require('http'),
 					pull_request_no = data.pull_request.number,
 					branch = data.pull_request.head.ref;
 
-				console.log(user, branch, pull_request_no)
+				//console.log(user, branch, pull_request_no);
 
-				github.createDomain(user, branch);
+				github.createDomain(user, branch, pull_request_no);
 				console.log('Request ended');
 			});
 
