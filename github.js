@@ -66,7 +66,7 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 				config.base_dir + 'scrollback-' + branch + '/tools/nginx.conf',
 				config.nginx_dir + 'scrollback-' + branch + '.stage.scrollback.io',
 				function (line) { // line transform function
-					return line.replace(/$branch\b/g, branch).replace(/$port\b/g, port);
+					return line.replace(/\b\$branch\b/g, branch).replace(/\b\$port\b/g, port);
 					// inside the file, write server_name $branch.stage.scrollack.io
 				},
 				createCallback()
@@ -76,7 +76,7 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 				config.baseDir + 'scrollback-' + branch + '/server-config.sample.js',
 				config.baseDir + 'scrollback-' + branch + '/server-config.js',
 				function (line) { // line transform function
-					return line.replace(/$branch\b/g, branch).replace(/$port\b/g, port);
+					return line.replace(/\b\$branch\b/g, branch).replace(/\b\$port\b/g, port);
 					// inside the file, write server_name $branch.stage.scrollack.io
 				},
 				createCallback()
@@ -86,7 +86,7 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 				config.baseDir + 'scrollback-' + branch + '/client-config.sample.js',
 				config.baseDir + 'scrollback-' + branch + '/client-config.js',
 				function (line) { // line transform function
-					return line.replace(/$branch\b/g, branch);
+					return line.replace(/\b\$branch\b/g, branch);
 					// inside the file, write server_name $branch.stage.scrollack.io
 				},
 				createCallback()
