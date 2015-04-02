@@ -83,10 +83,10 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 			);
 
 			copyFile(
-				config.baseDir + 'scrollback-' + branch + '/tools/nginx.conf',
-				config.nginxDir + 'scrollback-' + branch + '.stage.scrollback.io',
+				config.baseDir + 'scrollback-' + branch + '/client-config.sample.js',
+				config.baseDir + 'scrollback-' + branch + '/client-config.js',
 				function (line) { // line transform function
-					return line.replace(/$branch\b/g, branch).replace(/$port\b/g, port);
+					return line.replace(/$branch\b/g, branch);
 					// inside the file, write server_name $branch.stage.scrollack.io
 				},
 				createCallback()
