@@ -1,3 +1,7 @@
+/* global require */
+/* jshint -W116 */
+
+
 var http = require('http'),
 
 	github = require('./github.js'),
@@ -15,12 +19,12 @@ var http = require('http'),
 				data = JSON.parse(data.toString('utf-8'));
 
 				var user = data.sender.login,
-					pull_request_no = data.pull_request.number,
+					pullRequestNo = data.pull_request.number,
 					branch = data.pull_request.head.ref;
 
 				//console.log(user, branch, pull_request_no);
 
-				github.createDomain(user, branch, pull_request_no);
+				github.createDomain(user, branch, pullRequestNo);
 				console.log('Request ended');
 			});
 
