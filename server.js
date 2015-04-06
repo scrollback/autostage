@@ -1,5 +1,5 @@
 var http = require('http'),
-	github = require('./github.js'),
+	nginx = require('./nginx.js'),
 	server = http.createServer(function (req) {
 		var response = [];
 		if (req.method === "POST" && req.headers && (/^GitHub/).test(req.headers["user-agent"])) {
@@ -18,7 +18,7 @@ var http = require('http'),
 
 					console.log(user, branch, pullRequestNo);
 
-				github.createDomain(user, branch, pullRequestNo);
+				nginx.copyNginx(branch, pullRequestNo);
 				console.log('Request ended');
 			});
 
@@ -32,6 +32,6 @@ var http = require('http'),
 			console.log("err");
 		});
 	});
-server.listen(7000);
-console.log('Server is running on port 7000');
+server.listen(7001);
+console.log('Server is running on port 7001');
 
