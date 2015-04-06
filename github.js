@@ -9,13 +9,13 @@ var fs = require('fs'),
 
 
 var startScrollback = function(branch) {
+	childProcess.execSync("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io");
 	process.chdir(config.baseDir + 'scrollback-' + branch);
 	childProcess.exec('npm install',
 		childProcess.exec('bower install',
 			childProcess.exec('gulp',
 				scrollbackProcesses[branch] = childProcess.exec('npm start',
 					function() {
-
 						console.log('scrollback-' + branch + ' is ready');
 					})
 			)
@@ -93,7 +93,15 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 				createCallback()
 			);
 
-
+			copyFile(
+				config.baseDir + 'scrollback-' + branch + '/tools/nginx.conf',
+				config.baseDir + branch +'.nginx.conf',
+				function(line) { // line transform function
+					return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
+					// inside the file, write server_name $branch.stage.scrollack.io
+				},
+				createCallback()
+			);
 		});
 };
 
