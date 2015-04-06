@@ -8,7 +8,7 @@ var fs = require('fs'),
 	scrollbackProcesses = {};
 
 
-var startScrollback = function(branch , callback ) {
+var startScrollback = function(branch) {
 	process.chdir(config.baseDir + 'scrollback-' + branch);
 	childProcess.exec('npm install',
 		childProcess.exec('bower install',
@@ -21,7 +21,6 @@ var startScrollback = function(branch , callback ) {
 			)
 		)
 	);
-	callback();
 };
 
 //delete the directory when a pull request is closed
@@ -69,10 +68,7 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 					return function() {
 						numOps--;
 						if (numOps === 0)
-							startScrollback(branch, function() {
-								process.chdir(config.baseDir + 'autostage');
-								childProcess.exec('sudo node server.js');
-							});
+							startScrollback(branch);
 					};
 				};
 			})();
