@@ -106,7 +106,7 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 				createCallback()
 			);
 
-			childProcess.execSync("sudo nginx -s reload");
+			childProcess.exec("sudo nginx -s reload", function(){});
 
 		});
 };
