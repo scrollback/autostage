@@ -54,61 +54,70 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 
 	// First, check out this branch into a new directory.
 
-	process.chdir(config.baseDir);
-	childProcess.exec(
-		'git clone --depth 1 --branch ' + branch +
-		' https://github.com/scrollback/scrollback.git scrollback-' + branch,
-		function(err) {
-			if (err !== null) {
-				console.log('Error occured while checking out ' + branch, err);
-				return;
-			}
 
-			var createCallback = (function() {
-				var numOps = 0;
-				return function() {
-					numOps++;
+	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
+		process.chdir(config.baseDir + 'scrollback-' + branch);
+		childProcess.exec('git pull');
+		childProcess.exec('npm start');
+	} else {
+		process.chdir(config.baseDir);
+		childProcess.exec(
+			'git clone --depth 1 --branch ' + branch +
+			' https://github.com/scrollback/scrollback.git scrollback-' + branch,
+			function(err) {
+				if (err !== null) {
+					console.log('Error occured while checking out ' + branch, err);
+					return;
+				}
+
+				var createCallback = (function() {
+					var numOps = 0;
 					return function() {
-						numOps--;
-						if (numOps === 0)
-							startScrollback(branch);
+						numOps++;
+						return function() {
+							numOps--;
+							if (numOps === 0)
+								startScrollback(branch);
+						};
 					};
-				};
-			})();
+				})();
 
-			copyFile(
-				config.baseDir + 'scrollback-' + branch + '/server-config.template.js',
-				config.baseDir + 'scrollback-' + branch + '/server-config.js',
-				function(line) { // line transform function
-					return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
-					// inside the file, write server_name $branch.stage.scrollack.io
-				},
-				createCallback()
-			);
+				copyFile(
+					config.baseDir + 'scrollback-' + branch + '/server-config.template.js',
+					config.baseDir + 'scrollback-' + branch + '/server-config.js',
+					function(line) { // line transform function
+						return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
+						// inside the file, write server_name $branch.stage.scrollack.io
+					},
+					createCallback()
+				);
 
-			copyFile(
-				config.baseDir + 'scrollback-' + branch + '/client-config.template.js',
-				config.baseDir + 'scrollback-' + branch + '/client-config.js',
-				function(line) { // line transform function
-					return line.replace(/\$branch\b/g, branch);
-					// inside the file, write server_name $branch.stage.scrollack.io
-				},
-				createCallback()
-			);
+				copyFile(
+					config.baseDir + 'scrollback-' + branch + '/client-config.template.js',
+					config.baseDir + 'scrollback-' + branch + '/client-config.js',
+					function(line) { // line transform function
+						return line.replace(/\$branch\b/g, branch);
+						// inside the file, write server_name $branch.stage.scrollack.io
+					},
+					createCallback()
+				);
 
-			copyFile(
-				config.baseDir + 'scrollback-' + branch + '/tools/nginx.conf',
-				config.baseDir + branch + '.nginx.conf',
-				function(line) { // line transform function
-					return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
-					// inside the file, write server_name $branch.stage.scrollack.io
-				},
-				createCallback()
-			);
+				copyFile(
+					config.baseDir + 'scrollback-' + branch + '/tools/nginx.conf',
+					config.baseDir + branch + '.nginx.conf',
+					function(line) { // line transform function
+						return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
+						// inside the file, write server_name $branch.stage.scrollack.io
+					},
+					createCallback()
+				);
 
-			childProcess.exec("sudo nginx -s reload", function(){});
+				childProcess.exec("sudo nginx -s reload", function() {});
 
-		});
+			});
+	}
+
+
 };
 
 /*exports.deleteDomain = function (user, branch) {
