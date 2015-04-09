@@ -57,8 +57,9 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
 		process.chdir(config.baseDir + 'scrollback-' + branch);
-		childProcess.exec('git pull');
-		childProcess.exec('npm start');
+		console.log(process.cwd());
+		childProcess.exec('git pull', childProcess.exec('npm start'));
+
 	} else {
 		process.chdir(config.baseDir);
 		childProcess.exec(
