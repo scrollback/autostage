@@ -113,7 +113,12 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 					createCallback()
 				);
 
-				childProcess.exec("sudo nginx -s reload", function() {});
+				childProcess.exec("mkdir " + config.baseDir + "scrollback-" + branch + "/logs/nginx",
+					childProcess.exec("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/access.log",
+						childProcess.exec("sudo nginx -s reload", function() {})
+					)
+				);
+
 
 			});
 	}
