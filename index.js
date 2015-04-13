@@ -1,6 +1,6 @@
 var http = require('http'),
 	github = require('./github.js'),
-	server = http.createServer(function (req) {
+	server = http.createServer(function (req, res) {
 		var response = [];
 		if (req.method === "POST" && req.headers && (/^GitHub/).test(req.headers["user-agent"])) {
 			req.on('data', function (data) {
@@ -26,7 +26,7 @@ var http = require('http'),
 				console.log('connection closed');
 			});
 		}
-		//res.end('not-implemented');
+		res.end('not-implemented');
 
 		req.on("err", function () {
 			console.log("err");

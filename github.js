@@ -11,18 +11,28 @@ var startScrollback = function(branch) {
 	childProcess.exec("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io",
 		function() {
 			process.chdir(config.baseDir + 'scrollback-' + branch);
-			childProcess.exec('npm install',
-				childProcess.exec('bower install',
-					childProcess.exec('gulp',
-						/*scrollbackProcesses[branch] = */childProcess.exec('npm start',
-							function() {
+			console.log(process.cwd());
+		console.log('deleting npm module...');
+			childProcess.exec('rm -rf node_modules/', function() {
+				//installing npm
+				console.log('installing npm module...');
+				childProcess.exec('npm install', function() {
+					//installingg bower
+					console.log('installing bower...');
+					childProcess.exec('bower install', function() {
+						//running gulp files
+						console.log('running gulp...');
+						childProcess.exec('gulp', function() {
+							//starting scrollback
+							console.log('staring scrollback-'+ branch+ '...');
+							childProcess.exec('npm start', function() {
 								console.log('scrollback-' + branch + ' is ready');
-							})
-					)
-				)
-			);
+							});
+						});
+					});
+				});
+			});
 		});
-
 };
 
 //delete the directory when a pull request is closed
