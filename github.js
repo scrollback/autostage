@@ -4,9 +4,8 @@
 var fs = require('fs'),
 	childProcess = require('child_process'),
 	config = require('./config.js'),
-	teamMembers = config.teamMembers,
-	scrollbackProcesses = {};
-
+	teamMembers = config.teamMembers;
+	/*scrollbackProcesses = {};*/
 
 var startScrollback = function(branch) {
 	childProcess.exec("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io",
@@ -15,7 +14,7 @@ var startScrollback = function(branch) {
 			childProcess.exec('npm install',
 				childProcess.exec('bower install',
 					childProcess.exec('gulp',
-						scrollbackProcesses[branch] = childProcess.exec('npm start',
+						/*scrollbackProcesses[branch] = */childProcess.exec('npm start',
 							function() {
 								console.log('scrollback-' + branch + ' is ready');
 							})
@@ -59,6 +58,7 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 		process.chdir(config.baseDir + 'scrollback-' + branch);
 		console.log(process.cwd());
 		childProcess.exec('git pull', childProcess.exec('npm start'));
+		startScrollback(branch);
 
 	} else {
 		process.chdir(config.baseDir);
