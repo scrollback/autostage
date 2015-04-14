@@ -25,9 +25,7 @@ var startScrollback = function(branch) {
 						childProcess.exec('gulp', function() {
 							//starting scrollback
 							console.log('staring scrollback-' + branch + '...');
-							scrollbackProcesses[branch] = childProcess.exec('npm start', function() {
-								console.log('scrollback-' + branch + ' is ready');
-							});
+							scrollbackProcesses[branch] = childProcess.exec('npm start');
 						});
 					});
 				});
