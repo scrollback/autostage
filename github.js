@@ -38,7 +38,7 @@ exports.deleteDomain = function(branch) {
 	process.chdir(config.baseDir);
 	console.log('deleting the scrollback-'+branch+' directory and all config files');
 	childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf');
-	childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.nginx.conf');
+	childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.stage.scrollback.io');
 	//scrollbackProcesses[branch].kill();
 	//delete scrollbackProcesses[branch];
 };
