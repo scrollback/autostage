@@ -38,7 +38,7 @@ var startScrollback = function(branch) {
 //delete the directory when a pull request is closed
 exports.deleteDomain = function(branch) {
 	process.chdir(config.baseDir);
-	console.log('deleting the scrollback'+branch+'directory and all config files');
+	console.log('deleting the scrollback-'+branch+' directory and all config files');
 	childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf');
 	childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.nginx.conf');
 	scrollbackProcesses[branch].kill();
