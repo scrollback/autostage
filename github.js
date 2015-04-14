@@ -4,15 +4,15 @@
 var fs = require('fs'),
 	childProcess = require('child_process'),
 	config = require('./config.js'),
-	teamMembers = config.teamMembers;
-	/*scrollbackProcesses = {};*/
+	teamMembers = config.teamMembers,
+	scrollbackProcesses = {};
 
 var startScrollback = function(branch) {
 	childProcess.exec("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io",
 		function() {
 			process.chdir(config.baseDir + 'scrollback-' + branch);
 			console.log(process.cwd());
-		console.log('deleting npm module...');
+			console.log('deleting npm module...');
 			childProcess.exec('rm -rf node_modules/', function() {
 				//installing npm
 				console.log('installing npm module...');
@@ -24,8 +24,8 @@ var startScrollback = function(branch) {
 						console.log('running gulp...');
 						childProcess.exec('gulp', function() {
 							//starting scrollback
-							console.log('staring scrollback-'+ branch+ '...');
-							childProcess.exec('npm start', function() {
+							console.log('staring scrollback-' + branch + '...');
+							scrollbackProcesses[branch] = childProcess.exec('npm start', function() {
 								console.log('scrollback-' + branch + ' is ready');
 							});
 						});
@@ -36,10 +36,14 @@ var startScrollback = function(branch) {
 };
 
 //delete the directory when a pull request is closed
-/*var stopScrollback = function(branch) {
+exports.deleteDomain = function(branch) {
+	process.chdir(config.baseDir);
+	console.log('deleting the scrollback'+branch+'directory and all config files');
+	childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf');
+	childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.nginx.conf');
 	scrollbackProcesses[branch].kill();
 	delete scrollbackProcesses[branch];
-};*/
+};
 
 exports.createDomain = function(user, branch, pullRequestNo) {
 	var port = 7000 + pullRequestNo;
