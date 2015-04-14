@@ -19,7 +19,7 @@ var http = require('http'),
 
 				console.log(user, branch, pullRequestNo, state);
 				if (state === 'open') github.createDomain(user, branch, pullRequestNo);
-				else github.DeleteDomain(branch);
+				else github.deleteDomain(branch);
 				console.log('Request ended');
 			});
 
