@@ -8,35 +8,28 @@ var fs = require('fs'),
 	scrollbackProcesses = {};
 
 var startScrollback = function(branch) {
-	childProcess.exec("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io",
-		function() {
-			process.chdir(config.baseDir + 'scrollback-' + branch);
-			console.log(process.cwd());
-			console.log('deleting npm module...');
-			childProcess.exec('rm -rf node_modules/', function() {
-				//installing npm
-				console.log('installing npm module...');
-				childProcess.exec('npm install', function() {
-					//installingg bower
-					console.log('installing bower...');
-					childProcess.exec('bower install', function() {
-						//running gulp files
-						console.log('running gulp...');
-						childProcess.exec('gulp', function() {
-							//starting scrollback
-							console.log('staring scrollback-' + branch + '...');
-							scrollbackProcesses[branch] = childProcess.exec('npm start');
-						});
-					});
-				});
-			});
-		});
+	process.chdir(config.baseDir + 'scrollback-' + branch);
+	//console.log(process.cwd());
+	console.log('deleting npm module...');
+	childProcess.execSync('rm -rf node_modules/');
+	//installing npm
+	console.log('installing npm module...');
+	childProcess.execSync('npm install');
+	//installingg bower
+	console.log('installing bower...');
+	childProcess.execSync('bower install');
+	//running gulp files
+	console.log('running gulp...');
+	childProcess.execSync('gulp');
+	//starting scrollback
+	console.log('staring scrollback-' + branch + '...');
+	scrollbackProcesses[branch] = childProcess.spawnSync('npm start');
 };
 
 //delete the directory when a pull request is closed
 exports.deleteDomain = function(branch) {
 	process.chdir(config.baseDir);
-	console.log('deleting the scrollback-'+branch+' directory and all config files');
+	console.log('deleting the scrollback-' + branch + ' directory and all config files');
 	childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf');
 	childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.stage.scrollback.io');
 	//scrollbackProcesses[branch].kill();
@@ -125,15 +118,18 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 					createCallback()
 				);
 
-				childProcess.exec("mkdir -p " + config.baseDir + "scrollback-" + branch + "/logs/nginx",
-					childProcess.exec("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/access.log",
-						childProcess.exec("sudo nginx -s reload", createCallback())
-					)
-				);
+				nginxOp(branch, function() {
+					childProcess.exec("sudo nginx -s reload", createCallback());
+				});
 			});
 	}
+};
 
-
+var nginxOp = function(branch, callback) {
+	childProcess.execSync("mkdir -p " + config.baseDir + "scrollback-" + branch + "/logs/nginx");
+	childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/access.log");
+	childProcess.exec("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io");
+	callback();
 };
 
 /*exports.deleteDomain = function (user, branch) {
