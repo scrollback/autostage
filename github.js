@@ -23,7 +23,7 @@ var startScrollback = function(branch) {
 	childProcess.execSync('gulp');
 	//starting scrollback
 	console.log('staring scrollback-' + branch + '...');
-	scrollbackProcesses[branch] = childProcess.spawnSync('npm start');
+	scrollbackProcesses[branch] = childProcess.execSync('node index &');
 };
 
 //delete the directory when a pull request is closed
@@ -33,7 +33,7 @@ exports.deleteDomain = function(branch) {
 	childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf');
 	childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.stage.scrollback.io');
 	//scrollbackProcesses[branch].kill();
-	//delete scrollbackProcesses[branch];
+	delete scrollbackProcesses[branch];
 };
 
 exports.createDomain = function(user, branch, pullRequestNo) {
@@ -131,7 +131,3 @@ var nginxOp = function(branch, callback) {
 	childProcess.exec("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io");
 	callback();
 };
-
-/*exports.deleteDomain = function (user, branch) {
-	stopScrollback(branch);
-}*/
