@@ -21,17 +21,19 @@ var http = require('http'),
 				if (state === 'open') github.createDomain(user, branch, pullRequestNo);
 				else github.deleteDomain(branch);
 				console.log('Request ended');
+
+				res.end('Autostage Server');
 			});
 
 			req.on('close', function() {
 				console.log('connection closed');
 			});
 		}
-		res.end('not-implemented');
+
 
 		req.on("err", function() {
 			console.log("err");
 		});
 	});
-server.listen(7000);
-console.log('Server is running on port 7000');
+server.listen(7001);
+console.log('Server is running on port 7001');
