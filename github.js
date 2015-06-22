@@ -81,9 +81,6 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 
 	if (teamMembers.indexOf(user) < 0) return;
 
-	// First, check out this branch into a new directory.
-
-
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
 		process.chdir(config.baseDir + 'scrollback-' + branch);
 		console.log(process.cwd());
@@ -158,6 +155,7 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 var nginxOp = function(branch, callback) {
 	childProcess.execSync("mkdir -p " + config.baseDir + "scrollback-" + branch + "/logs/nginx");
 	childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/access.log");
+	childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/error.log");
 	childProcess.exec("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io");
 	callback();
 };
