@@ -10,8 +10,6 @@ var fs = require('fs'),
 
 var startScrollback = function(branch, pullno) {
 	//process.chdir(config.baseDir + 'scrollback-' + branch);
-
-	gitcomit.gitComment(branch, pullno);
 	try {
 		console.log('deleting npm module...');
 		childProcess.execSync('rm -rf node_modules/');
