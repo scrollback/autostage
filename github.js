@@ -10,6 +10,7 @@ var fs = require('fs'),
 
 var startScrollback = function(branch, pullno) {
 	//process.chdir(config.baseDir + 'scrollback-' + branch);
+	gitcomit.gitComment(branch, pullno);
 	try {
 		console.log('deleting npm module...');
 		childProcess.execSync('rm -rf node_modules/');
@@ -40,8 +41,8 @@ var startScrollback = function(branch, pullno) {
 	//starting scrollback
 	console.log('Autostaging ' + branch + '.stage.scrollback.io...');
 
-	scrollbackProcesses[branch] = childProcess.exec('node index &');
-	gitcomit.gitComment(branch, pullno);
+	scrollbackProcesses[branch] = childProcess.execSync('node index &');
+
 };
 
 //delete the directory when a pull request is closed
