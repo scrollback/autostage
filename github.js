@@ -5,10 +5,13 @@ var fs = require('fs'),
 	childProcess = require('child_process'),
 	config = require('./config.js'),
 	teamMembers = config.teamMembers,
+	gitcomit = require('./git-comment.js'),
 	scrollbackProcesses = {};
 
-var startScrollback = function(branch) {
+var startScrollback = function(branch, pullno) {
 	//process.chdir(config.baseDir + 'scrollback-' + branch);
+
+	gitcomit.gitComment(branch, pullno);
 	try {
 		console.log('deleting npm module...');
 		childProcess.execSync('rm -rf node_modules/');
@@ -38,7 +41,9 @@ var startScrollback = function(branch) {
 	}
 	//starting scrollback
 	console.log('Autostaging ' + branch + '.stage.scrollback.io...');
-	scrollbackProcesses[branch] = childProcess.execSync('node index &');
+
+	scrollbackProcesses[branch] = childProcess.exec('node index &');
+	gitcomit.gitComment(branch, pullno);
 };
 
 //delete the directory when a pull request is closed
@@ -46,7 +51,7 @@ exports.deleteDomain = function(branch) {
 	process.chdir(config.baseDir);
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
 
-		childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf', function(){
+		childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf', function() {
 			console.log('deleting the scrollback-' + branch + ' directory and all config files');
 		});
 		childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.stage.scrollback.io');
@@ -57,7 +62,7 @@ exports.deleteDomain = function(branch) {
 			console.log("no scrollbackProcesss");
 		}
 	} else {
-		console.log("no scrollback-"+branch+" directory present");
+		console.log("no scrollback-" + branch + " directory present");
 	}
 };
 
@@ -84,12 +89,23 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
 		process.chdir(config.baseDir + 'scrollback-' + branch);
 		console.log(process.cwd());
-		childProcess.exec('git pull', function(){
+		childProcess.exec('git pull', function() {
 			console.log("updating the repository");
-			startScrollback(branch);
+			try {
+				//running gulp files
+				console.log('running gulp...');
+				childProcess.execSync('gulp');
+			} catch (err) {
+				console.log(err);
+			}
+			//starting scrollback
+			console.log(scrollbackProcesses)
+			console.log('Autostaging ' + branch + '.stage.scrollback.io...');
+			scrollbackProcesses[branch] = childProcess.execSync('node index &');
 		});
 
 	} else {
+//		gitcomit.gitComment(branch, pullRequestNo);
 		process.chdir(config.baseDir);
 		childProcess.exec(
 			'git clone --depth 1 --branch ' + branch +
@@ -108,7 +124,7 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 							numOps--;
 							if (numOps === 0) {
 								process.chdir(config.baseDir + 'scrollback-' + branch);
-								startScrollback(branch);
+								startScrollback(branch, pullRequestNo);
 							}
 
 						};
