@@ -1,5 +1,6 @@
 var http = require('http'),
 	github = require('./github.js'),
+	gitcomit = require('./git-comment.js'),
 	server = http.createServer(function(req, res) {
 		var response = [];
 		if (req.method === "POST" && req.headers && (/^GitHub/).test(req.headers["user-agent"])) {
@@ -18,7 +19,10 @@ var http = require('http'),
 					branch = data.pull_request.head.ref;
 
 				console.log(user, branch, pullRequestNo, state);
-				if (state === 'open') github.createDomain(user, branch, pullRequestNo);
+				if (state === 'open') {
+					github.createDomain(user, branch, pullRequestNo);
+					gitcomit.gitComment(branch, pullRequestNo);
+				}
 				else github.deleteDomain(branch);
 				console.log('Request ended');
 

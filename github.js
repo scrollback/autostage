@@ -5,12 +5,10 @@ var fs = require('fs'),
 	childProcess = require('child_process'),
 	config = require('./config.js'),
 	teamMembers = config.teamMembers,
-	gitcomit = require('./git-comment.js'),
 	scrollbackProcesses = {};
 
 var startScrollback = function(branch, pullno) {
 	//process.chdir(config.baseDir + 'scrollback-' + branch);
-	gitcomit.gitComment(branch, pullno);
 	try {
 		console.log('deleting npm module...');
 		childProcess.execSync('rm -rf node_modules/');
