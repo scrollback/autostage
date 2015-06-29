@@ -1,5 +1,6 @@
 /* global require, exports */
 /* jshint -W116 */
+/*eslint no-use-before-define: 0*/
 "use strict";
 var fs = require('fs'),
 	childProcess = require('child_process'),
@@ -55,10 +56,14 @@ var deleteDomain = function(branch) { //delete the directory when a pull request
 	process.chdir(config.baseDir);
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
 
-		childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf', function() {
+		childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf', function(err) {
+			if (err) throw err;
 			console.log('deleting the scrollback-' + branch + ' directory and all config files');
 		});
-		childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.stage.scrollback.io');
+		childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.stage.scrollback.io', function(err) {
+			if (err) throw err;
+			console.log('deleting the nginx files');
+		});
 		if (scrollbackProcesses[branch]) {
 			scrollbackProcesses[branch].kill();
 			delete scrollbackProcesses[branch];
@@ -172,7 +177,7 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 };
 
 exports.autostage = function(state, branch, pullRequestNo) {
-	if (state === 'opened') {
+	if (state === 'opened' || state === 'reopened') {
 		createDomain(branch, pullRequestNo);
 		gitcomment.gitComment(branch, pullRequestNo);
 	} else if (state === "synchronize") {
