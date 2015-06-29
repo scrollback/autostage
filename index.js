@@ -1,6 +1,6 @@
 "use strict";
 var http = require('http'),
-	github = require('./git.js'),
+	github = require('./github.js'),
 	config = require('./config.js'),
 	teamMembers = config.teamMembers,
 	server = http.createServer(function(req, res) {
