@@ -1,13 +1,21 @@
 /* global require, exports */
 /* jshint -W116 */
-
+"use strict";
 var fs = require('fs'),
 	childProcess = require('child_process'),
+	gitcomment = require('./git-comment.js'),
 	config = require('./config.js'),
-	teamMembers = config.teamMembers,
 	scrollbackProcesses = {};
 
-var startScrollback = function(branch, pullno) {
+var nginxOp = function(branch, callback) {
+	childProcess.execSync("mkdir -p " + config.baseDir + "scrollback-" + branch + "/logs/nginx");
+	childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/access.log");
+	childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/error.log");
+	childProcess.exec("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io");
+	callback();
+};
+
+var startScrollback = function(branch) {
 	//process.chdir(config.baseDir + 'scrollback-' + branch);
 	try {
 		console.log('deleting npm module...');
@@ -37,14 +45,13 @@ var startScrollback = function(branch, pullno) {
 		console.log(err);
 	}
 	//starting scrollback
-	console.log('Autostaging ' + branch + '.stage.scrollback.io...');
+	console.log('Autostaging ' + branch + '.stage.scrollback.io');
 
 	scrollbackProcesses[branch] = childProcess.execSync('node index &');
 
 };
 
-//delete the directory when a pull request is closed
-exports.deleteDomain = function(branch) {
+var deleteDomain = function(branch) { //delete the directory when a pull request is closed
 	process.chdir(config.baseDir);
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
 
@@ -63,26 +70,7 @@ exports.deleteDomain = function(branch) {
 	}
 };
 
-exports.createDomain = function(user, branch, pullRequestNo) {
-	var port = 7000 + pullRequestNo;
-
-	var copyFile = function(readPath, writePath, lineTransform, callback) {
-		fs.readFile(readPath, function(err, data) {
-			if (err) throw err;
-
-			fs.writeFile(
-				writePath,
-				data.toString('utf-8').split("\n").map(lineTransform).join('\n'),
-				function(err) {
-					if (err) throw err;
-					callback();
-				}
-			);
-		});
-	};
-
-	if (teamMembers.indexOf(user) < 0) return;
-
+var updateDomain = function(branch, pullRequestNo) { //upadate the directory
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
 		process.chdir(config.baseDir + 'scrollback-' + branch);
 		console.log(process.cwd());
@@ -96,79 +84,98 @@ exports.createDomain = function(user, branch, pullRequestNo) {
 				console.log(err);
 			}
 			//starting scrollback
-			console.log(scrollbackProcesses)
-			console.log('Autostaging ' + branch + '.stage.scrollback.io...');
-			scrollbackProcesses[branch] = childProcess.execSync('node index &');
+			console.log('Restarting ' + branch + '.stage.scrollback.io ...');
+			childProcess.execSync('node index &');
 		});
-
-	} else {
-//		gitcomit.gitComment(branch, pullRequestNo);
-		process.chdir(config.baseDir);
-		childProcess.exec(
-			'git clone --depth 1 --branch ' + branch +
-			' https://github.com/scrollback/scrollback.git scrollback-' + branch,
-			function(err) {
-				if (err !== null) {
-					console.log('Error occured while checking out ' + branch, err);
-					return;
-				}
-
-				var createCallback = (function() {
-					var numOps = 0;
-					return function() {
-						numOps++;
-						return function() {
-							numOps--;
-							if (numOps === 0) {
-								process.chdir(config.baseDir + 'scrollback-' + branch);
-								startScrollback(branch, pullRequestNo);
-							}
-
-						};
-					};
-				})();
-
-				copyFile(
-					config.baseDir + 'scrollback-' + branch + '/server-config.template.js',
-					config.baseDir + 'scrollback-' + branch + '/server-config.js',
-					function(line) { // line transform function
-						return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
-						// inside the file, write server_name $branch.stage.scrollack.io
-					},
-					createCallback()
-				);
-
-				copyFile(
-					config.baseDir + 'scrollback-' + branch + '/client-config.template.js',
-					config.baseDir + 'scrollback-' + branch + '/client-config.js',
-					function(line) { // line transform function
-						return line.replace(/\$branch\b/g, branch);
-						// inside the file, write server_name $branch.stage.scrollack.io
-					},
-					createCallback()
-				);
-
-				copyFile(
-					config.baseDir + 'scrollback-' + branch + '/tools/nginx.conf',
-					config.baseDir + branch + '.nginx.conf',
-					function(line) { // line transform function
-						return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
-						// inside the file, write server_name $branch.stage.scrollack.io
-					},
-					createCallback()
-				);
-
-				nginxOp(branch, function() {
-					childProcess.exec("sudo nginx -s reload", createCallback());
-				});
-			});
-	}
+	} else createDomain(branch, pullRequestNo);
 };
 
-var nginxOp = function(branch, callback) {
-	childProcess.execSync("mkdir -p " + config.baseDir + "scrollback-" + branch + "/logs/nginx");
-	childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/access.log");
-	childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/error.log");
-	childProcess.exec("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io");
-	callback();
+var createDomain = function(branch, pullRequestNo) { //create a new directory
+	var port = 7000 + pullRequestNo;
+	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
+		updateDomain(branch, pullRequestNo);
+	}
+	var copyFile = function(readPath, writePath, lineTransform, callback) {
+		fs.readFile(readPath, function(err, data) {
+			if (err) throw err;
+
+			fs.writeFile(
+				writePath,
+				data.toString('utf-8').split("\n").map(lineTransform).join('\n'),
+				function(err1) {
+					if (err1) throw err1;
+					callback();
+				}
+			);
+		});
+	};
+
+	process.chdir(config.baseDir);
+	childProcess.exec(
+		'git clone --depth 1 --branch ' + branch +
+		' https://github.com/scrollback/scrollback.git scrollback-' + branch,
+		function(err) {
+			if (err !== null) {
+				console.log('Error occured while checking out ' + branch, err);
+				return;
+			}
+
+			var createCallback = (function() {
+				var numOps = 0;
+				return function() {
+					numOps++;
+					return function() {
+						numOps--;
+						if (numOps === 0) {
+							process.chdir(config.baseDir + 'scrollback-' + branch);
+							startScrollback(branch, pullRequestNo);
+						}
+
+					};
+				};
+			})();
+
+			copyFile(
+				config.baseDir + 'scrollback-' + branch + '/server-config.template.js',
+				config.baseDir + 'scrollback-' + branch + '/server-config.js',
+				function(line) { // line transform function
+					return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
+					// inside the file, write server_name $branch.stage.scrollack.io
+				},
+				createCallback()
+			);
+
+			copyFile(
+				config.baseDir + 'scrollback-' + branch + '/client-config.template.js',
+				config.baseDir + 'scrollback-' + branch + '/client-config.js',
+				function(line) { // line transform function
+					return line.replace(/\$branch\b/g, branch);
+					// inside the file, write server_name $branch.stage.scrollack.io
+				},
+				createCallback()
+			);
+
+			copyFile(
+				config.baseDir + 'scrollback-' + branch + '/tools/nginx.conf',
+				config.baseDir + branch + '.nginx.conf',
+				function(line) { // line transform function
+					return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
+					// inside the file, write server_name $branch.stage.scrollack.io
+				},
+				createCallback()
+			);
+
+			nginxOp(branch, function() {
+				childProcess.exec("sudo nginx -s reload", createCallback());
+			});
+		});
+};
+
+exports.autostage = function(state, branch, pullRequestNo) {
+	if (state === 'opened') {
+		createDomain(branch, pullRequestNo);
+		gitcomment.gitComment(branch, pullRequestNo);
+	} else if (state === "synchronize") {
+		updateDomain(branch, pullRequestNo);
+	} else deleteDomain(branch);
 };
