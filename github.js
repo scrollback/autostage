@@ -4,7 +4,7 @@
 "use strict";
 var fs = require('fs'),
 	childProcess = require('child_process'),
-	gitcomment = require('./git-comment.js'),
+	//	gitcomment = require('./git-comment.js'),
 	config = require('./config.js'),
 	scrollbackProcesses = {};
 
@@ -176,11 +176,16 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 		});
 };
 
-exports.autostage = function(state, branch, pullRequestNo) {
-	if (state === 'opened' || state === 'reopened') {
-		createDomain(branch, pullRequestNo);
-		gitcomment.gitComment(branch, pullRequestNo);
-	} else if (state === "synchronize") {
+exports.autostage = function(state, branch, pullRequestNo, cb) {
+	if (state === 'opened' || state === 'reopened') createDomain(branch, pullRequestNo);
+	if (state === "synchronize") {
 		updateDomain(branch, pullRequestNo);
-	} else deleteDomain(branch);
+		return;
+	}
+	if (state === 'closed') {
+		deleteDomain(branch);
+		return;
+	}
+	cb();
+
 };
