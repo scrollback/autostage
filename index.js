@@ -2,8 +2,9 @@
 var http = require('http'),
 	github = require('./github.js'),
 	config = require('./config.js'),
+	log = require('./logger.js'),
 	teamMembers = config.teamMembers,
-	//	gitcomment = require('./git-comment.js'),
+	action,
 	server = http.createServer(function(req, res) {
 		var response = [];
 		if (req.method === "POST" && req.headers && (/^GitHub/).test(req.headers["user-agent"])) {
@@ -11,7 +12,6 @@ var http = require('http'),
 				response.push(data.toString("utf-8"));
 
 			});
-
 			req.on('end', function() {
 				var data = response.join("");
 				data = JSON.parse(data.toString('utf-8'));
@@ -20,11 +20,13 @@ var http = require('http'),
 					pullRequestNo = data.pull_request.number,
 					state = data.action,
 					branch = data.pull_request.head.ref;
-
-				console.log(user, branch, pullRequestNo, state);
+				if (state === "opened") {
+					action = "created";
+				} else action = "pushed changes to";
+				log.i(user, action, branch);
 				if (teamMembers.indexOf(user) < 0) return;
 				github.autostage(state, branch, pullRequestNo);
-				console.log('Request ended');
+				log.i('Request ended');
 				res.end('Autostage Server');
 			});
 
@@ -32,8 +34,6 @@ var http = require('http'),
 				console.log('connection closed');
 			});
 		}
-
-
 		req.on("err", function() {
 			console.log("err");
 		});
