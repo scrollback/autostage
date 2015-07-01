@@ -6,7 +6,6 @@ var winston = require('winston'),
 	util = require('util'),
 	dir = process.cwd(),
 	fs = require("fs");
-console.log(dir);
 var customLevels = {
 	levels: {
 		debug: 0,
@@ -44,17 +43,18 @@ var logger = new(winston.Logger)({
 function line(args) {
 	var parts = [
 			(new Date()).toISOString().replace(/\.\w*$/, '').replace(/^20/, ""),
-			(new Error()).stack.
-		replace(/.*(Error|node_modules|logger|native).*\n/g, ''). // remove lines with these words
-		replace(/\n[\s\S]*$/, ''). // take the first line
-		replace(/^[\s\S]*?\/home\/chandra\/autostage\//, ''). // relative path
-		replace(/^.*\s+at\s*/, '').
-		replace(/[\)\(]/g, '')
+			(function() {
+				var str = (new Error()).stack.
+				replace(/.*(Error|node_modules|logger|native).*\n/g, ''). // remove lines with these words
+				replace(/\n[\s\S]*$/, ''); // take the first line
+
+				var parts = str.match(/([^\/^\(]*)(\/.+\/)([^\/]+\.js\:[0-9]+\:[0-9]+)([^/(])(.*)/);
+
+				return parts[1].trim() + parts[3] + parts[5];
+			}())
 	],
 		logLine;
 	logLine = util.format.apply(util, args).replace(/\s+/g, ' ');
-
-	parts.push("(" + logLine.length + ")");
 	parts.push(logLine.substr(0, 1024));
 
 	return parts.join(' ');

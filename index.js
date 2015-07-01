@@ -22,7 +22,9 @@ var http = require('http'),
 					branch = data.pull_request.head.ref;
 				if (state === "opened") {
 					action = "created";
-				} else action = "pushed changes to";
+				} else if (state === 'closed') {
+					action = "closed";
+				} else action = "pushed to";
 				log.i(user, action, branch);
 				if (teamMembers.indexOf(user) < 0) return;
 				github.autostage(state, branch, pullRequestNo);
