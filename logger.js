@@ -43,15 +43,12 @@ var logger = new(winston.Logger)({
 function line(args) {
 	var parts = [
 			(new Date()).toISOString().replace(/\.\w*$/, '').replace(/^20/, ""),
-			(function() {
-				var str = (new Error()).stack.
-				replace(/.*(Error|node_modules|logger|native).*\n/g, ''). // remove lines with these words
-				replace(/\n[\s\S]*$/, ''); // take the first line
-
-				var parts = str.match(/([^\/^\(]*)(\/.+\/)([^\/]+\.js\:[0-9]+\:[0-9]+)([^/(])(.*)/);
-
-				return parts[1].trim() + parts[3] + parts[5];
-			}())
+			(new Error()).stack.
+		replace(/.*(Error|node_modules|logger|native).*\n/g, ''). // remove lines with these words
+		replace(/\n[\s\S]*$/, ''). // take the first line
+		replace(/^[\s\S]*?\/home\/scrollback\/autostage\//, ''). // relative path
+		replace(/^.*\s+at\s*/, '').
+		replace(/[\)\(]/g, '')
 	],
 		logLine;
 	logLine = util.format.apply(util, args).replace(/\s+/g, ' ');
