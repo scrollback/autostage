@@ -3,7 +3,7 @@ var http = require('http'),
 	github = require('./github.js'),
 	config = require('./config.js'),
 	teamMembers = config.teamMembers,
-	gitcomment = require('./git-comment.js'),
+	//	gitcomment = require('./git-comment.js'),
 	server = http.createServer(function(req, res) {
 		var response = [];
 		if (req.method === "POST" && req.headers && (/^GitHub/).test(req.headers["user-agent"])) {
@@ -23,9 +23,7 @@ var http = require('http'),
 
 				console.log(user, branch, pullRequestNo, state);
 				if (teamMembers.indexOf(user) < 0) return;
-				github.autostage(state, branch, pullRequestNo, function() {
-					gitcomment.gitComment(branch, pullRequestNo);
-				});
+				github.autostage(state, branch, pullRequestNo);
 				console.log('Request ended');
 				res.end('Autostage Server');
 			});
