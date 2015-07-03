@@ -10,10 +10,49 @@ var fs = require('fs'),
 	scrollbackProcesses = {};
 
 var nginxOp = function(branch, callback) {
-	childProcess.execSync("mkdir -p " + config.baseDir + "scrollback-" + branch + "/logs/nginx");
-	childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/access.log");
-	childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/error.log");
-	childProcess.exec("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io");
+	try {
+		childProcess.execSync("mkdir -p " + config.baseDir + "scrollback-" + branch + "/logs/nginx");
+	} //make a nginx log dir}
+	catch (err) {
+		log.e(err);
+	}
+	try {
+		childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/access.log");
+	} //create log files}
+	catch (err) {
+		log.e(err);
+	}
+	try {
+		childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/error.log");
+	} catch (err) {
+		log.e(err);
+	}
+	try {
+		childProcess.execSync("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io");
+	} catch (err) {
+		log.e(err);
+	}
+	try {
+		childProcess.execSync("sudo mkdir -p /var/run/" + branch);
+	} catch (err) {
+		log.e(err);
+	}
+	try {
+		childProcess.execSync("sudo touch " + config.baseDir + "/var/run/" + branch + "/" + branch + ".pid");
+	} //create files for upstart use}
+	catch (err) {
+		log.e(err);
+	}
+	try {
+		childProcess.execSync("sudo chown -R scrollback" + config.baseDir + "/var/run/" + branch);
+	} catch (err) {
+		log.e(err);
+	}
+	try {
+		childProcess.execSync("sudo cp " + config.baseDir + branch + ".conf /etc/init/" + branch + ".conf");
+	} catch (err) {
+		log.e(err);
+	}
 	callback();
 };
 
@@ -49,7 +88,7 @@ var startScrollback = function(branch) {
 	//starting scrollback
 	log.i('Autostaging ' + branch + '.stage.scrollback.io');
 
-	scrollbackProcesses[branch] = childProcess.execSync('node index &');
+	scrollbackProcesses[branch] = childProcess.exec('sudo start ' + branch);
 
 };
 
@@ -166,6 +205,16 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 				config.baseDir + branch + '.nginx.conf',
 				function(line) { // line transform function
 					return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
+					// inside the file, write server_name $branch.stage.scrollack.io
+				},
+				createCallback()
+			);
+
+			copyFile(
+				config.baseDir + 'scrollback-' + branch + '/tools/scrollback.template.conf',
+				config.baseDir + branch + '.conf',
+				function(line) { // line transform function
+					return line.replace(/\$branch\b/g, branch);
 					// inside the file, write server_name $branch.stage.scrollack.io
 				},
 				createCallback()
