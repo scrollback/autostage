@@ -60,6 +60,9 @@ var deleteDomain = function(branch) { //delete the directory when a pull request
 			if (err) log.e(err);
 			log.i('deleting the nginx files');
 		});
+
+		childProcess.execSync('sudo stop ' + branch);
+
 		if (scrollbackProcesses[branch]) {
 			scrollbackProcesses[branch].kill();
 			delete scrollbackProcesses[branch];
@@ -88,7 +91,7 @@ var updateDomain = function(branch, pullRequestNo) { //upadate the directory
 			}
 			//starting scrollback
 			log.i('Restarting ' + branch + '.stage.scrollback.io ...');
-			childProcess.execSync('node index &');
+			childProcess.execSync('sudo restart ' + branch);
 		});
 	} else createDomain(branch, pullRequestNo);
 };
