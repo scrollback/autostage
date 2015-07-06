@@ -4,57 +4,12 @@
 "use strict";
 var fs = require('fs'),
 	childProcess = require('child_process'),
-	gitcomment = require('./git-comment.js'),
+	//gitcomment = require('./git-comment.js'),
 	config = require('./config.js'),
 	log = require('./logger.js'),
 	scrollbackProcesses = {};
 
-var nginxOp = function(branch, callback) {
-	try {
-		childProcess.execSync("mkdir -p " + config.baseDir + "scrollback-" + branch + "/logs/nginx");
-	} //make a nginx log dir}
-	catch (err) {
-		log.e(err);
-	}
-	try {
-		childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/access.log");
-	} //create log files}
-	catch (err) {
-		log.e(err);
-	}
-	try {
-		childProcess.execSync("touch " + config.baseDir + "scrollback-" + branch + "/logs/nginx/error.log");
-	} catch (err) {
-		log.e(err);
-	}
-	try {
-		childProcess.execSync("sudo cp " + config.baseDir + branch + ".nginx.conf /etc/nginx/sites-enabled/" + branch + ".stage.scrollback.io");
-	} catch (err) {
-		log.e(err);
-	}
-	try {
-		childProcess.execSync("sudo mkdir -p /var/run/" + branch);
-	} catch (err) {
-		log.e(err);
-	}
-	try {
-		childProcess.execSync("sudo touch " + config.baseDir + "/var/run/" + branch + "/" + branch + ".pid");
-	} //create files for upstart use}
-	catch (err) {
-		log.e(err);
-	}
-	try {
-		childProcess.execSync("sudo chown -R scrollback" + config.baseDir + "/var/run/" + branch);
-	} catch (err) {
-		log.e(err);
-	}
-	try {
-		childProcess.execSync("sudo cp " + config.baseDir + branch + ".conf /etc/init/" + branch + ".conf");
-	} catch (err) {
-		log.e(err);
-	}
-	callback();
-};
+
 
 var startScrollback = function(branch) {
 	//process.chdir(config.baseDir + 'scrollback-' + branch);
@@ -62,33 +17,34 @@ var startScrollback = function(branch) {
 		log.i('deleting npm module...');
 		childProcess.execSync('rm -rf node_modules/');
 	} catch (err) {
-		log.e(err);
+		log.e(err.message);
 	}
 	try {
 		//installing npm
 		log.i('installing npm module...');
 		childProcess.execSync('npm install');
 	} catch (err) {
-		log.e(err);
+		log.e(err.message);
 	}
 	try {
 		//installingg bower
 		log.i('installing bower...');
 		childProcess.execSync('bower install');
 	} catch (err) {
-		log.e(err);
+		log.e(err.message);
 	}
 	try {
 		//running gulp files
 		log.i('running gulp...');
 		childProcess.execSync('gulp');
 	} catch (err) {
-		log.e(err);
+		log.e(err.message);
 	}
 	//starting scrollback
 	log.i('Autostaging ' + branch + '.stage.scrollback.io');
 
-	scrollbackProcesses[branch] = childProcess.exec('sudo start ' + branch);
+	scrollbackProcesses[branch] = childProcess.execSync('sudo start ' + branch);
+	log.i(scrollbackProcesses);
 
 };
 
@@ -126,7 +82,9 @@ var updateDomain = function(branch, pullRequestNo) { //upadate the directory
 				log.i('running gulp...');
 				childProcess.execSync('gulp');
 			} catch (err) {
-				log.e(err);
+				log.i(err.message);
+				startScrollback(branch, pullRequestNo);
+				return;
 			}
 			//starting scrollback
 			log.i('Restarting ' + branch + '.stage.scrollback.io ...');
@@ -139,11 +97,11 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 	var port = 7000 + pullRequestNo;
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
 		updateDomain(branch, pullRequestNo);
+		return;
 	}
 	var copyFile = function(readPath, writePath, lineTransform, callback) {
 		fs.readFile(readPath, function(err, data) {
-			if (err) throw err;
-
+			if (err) log.e(err);
 			fs.writeFile(
 				writePath,
 				data.toString('utf-8').split("\n").map(lineTransform).join('\n'),
@@ -159,9 +117,10 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 	childProcess.exec(
 		'git clone --depth 1 --branch ' + branch +
 		' https://github.com/scrollback/scrollback.git scrollback-' + branch,
-		function(err) {
-			if (err !== null) {
-				log.e('Error occured while checking out ' + branch, err);
+		function(err1) {
+			log.i("cloning ur branch...");
+			if (err1 !== null) {
+				log.e('Error occured while checking out ' + branch, err1.message);
 				return;
 			}
 
@@ -172,6 +131,14 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 					return function() {
 						numOps--;
 						if (numOps === 0) {
+							nginxOp(branch, function() {
+								log.i('reload nginx');
+								try {
+									childProcess.execSync("sudo nginx -s reload");
+								} catch (err) {
+									log.e(err.message);
+								}
+							});
 							process.chdir(config.baseDir + 'scrollback-' + branch);
 							startScrollback(branch, pullRequestNo);
 						}
@@ -217,12 +184,11 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 					return line.replace(/\$branch\b/g, branch);
 					// inside the file, write server_name $branch.stage.scrollack.io
 				},
+
 				createCallback()
 			);
 
-			nginxOp(branch, function() {
-				childProcess.exec("sudo nginx -s reload", createCallback());
-			});
+
 		});
 };
 
@@ -236,5 +202,20 @@ exports.autostage = function(state, branch, pullRequestNo) {
 		deleteDomain(branch);
 		return;
 	}
-	gitcomment.gitComment(branch, pullRequestNo);
+	//gitcomment.gitComment(branch, pullRequestNo);
+};
+
+var nginxOp = function(branch, callback) {
+	try {
+		childProcess.exec("chmod +x autostage/./run.sh");
+	} catch (err) {
+		log.e(err.message);
+	}
+	try {
+		childProcess.execSync("autostage/./run.sh " + branch);
+	} catch (err) {
+		log.e(err.message);
+	}
+	log.i("can start your server with upstart");
+	callback();
 };
