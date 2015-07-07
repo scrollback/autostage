@@ -41,7 +41,7 @@ var startScrollback = function(branch) {
 		log.e(err.message);
 	}
 	//starting scrollback
-	log.i('Autostaging ' + branch + '.stage.scrollback.io');
+	log.i('Staging your branch' + branch);
 
 	scrollbackProcesses[branch] = childProcess.execSync('sudo start ' + branch);
 	log.i(scrollbackProcesses);

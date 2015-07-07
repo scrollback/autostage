@@ -20,9 +20,9 @@ else
 	sudo mkdir -p /var/run/scrollback-$1
 	echo 'mkdir -p' /var/run/scrollback-$1
 	sleep 1	
-	sudo touch /var/run/scrollback-$1/$1.pid
-	echo  'touch' /var/run/scrollback-$1/$1.pid
-	sleep 1
+#	sudo touch /var/run/scrollback-$1/$1.pid
+#	echo  'touch' /var/run/scrollback-$1/$1.pid
+#	sleep 1
 	sudo chown -R $user /var/run/scrollback-$1
 	echo  'chown -R' $user /var/run/scrollback-$1
 	sleep 1	
