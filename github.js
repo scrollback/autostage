@@ -41,7 +41,7 @@ var startScrollback = function(branch) {
 		log.e(err.message);
 	}
 	//starting scrollback
-	log.i('Staging your branch' + branch);
+	log.i('Staging your branch ' + branch);
 
 	scrollbackProcesses[branch] = childProcess.execSync('sudo start ' + branch);
 	log.i(scrollbackProcesses);
@@ -62,13 +62,11 @@ var deleteDomain = function(branch) { //delete the directory when a pull request
 				if (err) log.e(err);
 				log.i('Removing nginx & upstart config files');
 			});
-
 		try {
-			childProcess.execSync('sudo stop ' + branch);
+			childProcess.execSync('sudo service ' + branch + ' stop');
 		} catch (err) {
 			log.e(err.message);
 		}
-
 		if (scrollbackProcesses[branch]) {
 			scrollbackProcesses[branch].kill();
 			delete scrollbackProcesses[branch];
