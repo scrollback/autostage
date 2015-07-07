@@ -56,16 +56,19 @@ var deleteDomain = function(branch) { //delete the directory when a pull request
 			if (err) log.e(err);
 			log.i('Removing the scrollback-' + branch + ' directory and all config files');
 		});
-		childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.stage.scrollback.io', function(err) {
+		childProcess.exec('sudo rm -rf ' + config.nginxDir + 'scrollback-' + branch, function(err) {
 			if (err) log.e(err);
-			log.i('Removing nginx & upstart config files');
+			log.i('Removing nginx config files');
 		});
 		try {
 			childProcess.execSync('sudo service ' + branch + ' stop');
 		} catch (err) {
 			log.e(err.message);
 		}
-		childProcess.exec('sudo rm -rf /etc/init/ ' + branch + '.conf /var/run/scrollback-' + branch);
+		childProcess.exec('sudo rm -rf /etc/init/ ' + branch + '.conf /var/run/scrollback-' + branch, function(err) {
+			if (err) log.e(err);
+			log.i('Removing upstart config files');
+		});
 		if (scrollbackProcesses[branch]) {
 			//			scrollbackProcesses[branch].kill();
 
