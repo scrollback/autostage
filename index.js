@@ -4,7 +4,6 @@ var http = require('http'),
 	config = require('./config.js'),
 	log = require('./logger.js'),
 	teamMembers = config.teamMembers,
-	action,
 	server = http.createServer(function(req, res) {
 		var response = [];
 		if (req.method === "POST" && req.headers && (/^GitHub/).test(req.headers["user-agent"])) {
@@ -20,12 +19,7 @@ var http = require('http'),
 					pullRequestNo = data.pull_request.number,
 					state = data.action,
 					branch = data.pull_request.head.ref;
-				if (state === "opened") {
-					action = "created";
-				} else if (state === 'closed') {
-					action = "closed";
-				} else action = "pushed to";
-				log.i(user, action, branch);
+				log.i(user, state, branch);
 				if (teamMembers.indexOf(user) < 0) return;
 				github.autostage(state, branch, pullRequestNo);
 				log.i('Request ended');

@@ -4,35 +4,29 @@
 "use strict";
 var fs = require('fs'),
 	childProcess = require('child_process'),
-	//gitcomment = require('./git-comment.js'),
+	gitcomment = require('./git-comment.js'),
 	config = require('./config.js'),
 	log = require('./logger.js'),
 	scrollbackProcesses = {};
 
-
-
-var startScrollback = function(branch) {
+var startScrollback = function(branch, cb) {
 	//process.chdir(config.baseDir + 'scrollback-' + branch);
-	try {
-		log.i('deleting npm module...');
-		childProcess.execSync('rm -rf node_modules/');
-	} catch (err) {
-		log.e(err.message);
-	}
-	try {
-		//installing npm
-		log.i('installing npm module...');
-		childProcess.execSync('npm install');
-	} catch (err) {
-		log.e(err.message);
-	}
-	try {
-		//installingg bower
-		log.i('installing bower...');
-		childProcess.execSync('bower install');
-	} catch (err) {
-		log.e(err.message);
-	}
+	childProcess.execSync('rm -rf node_modules/');
+	//	try {
+	//		//installing npm
+	//		log.i('installing npm module...');
+	//		childProcess.execSync('npm install');
+	//	} catch (err) {
+	//		log.e(err.message);
+	//	}
+	//	try {
+	//		//installingg bower
+	//		log.i('installing bower...');
+	//		childProcess.execSync('bower install');
+	//	} catch (err) {
+	//		log.e(err.message);
+	//	}
+
 	try {
 		//running gulp files
 		log.i('running gulp...');
@@ -42,16 +36,24 @@ var startScrollback = function(branch) {
 	}
 	//starting scrollback
 	log.i('Staging your branch ' + branch);
-
-	scrollbackProcesses[branch] = childProcess.execSync('sudo start ' + branch);
+	try {
+		scrollbackProcesses[branch] = childProcess.execSync('sudo start ' + branch);
+	} catch (err) {
+		log.e(err.message);
+	}
 	log.i(scrollbackProcesses);
+	cb();
 
 };
 
 var deleteDomain = function(branch) { //delete the directory when a pull request is closed
 	process.chdir(config.baseDir);
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
-
+		try {
+			childProcess.execSync('sudo service ' + branch + ' stop');
+		} catch (err) {
+			log.e(err.message);
+		}
 		childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf ' + branch + '.conf', function(err) {
 			if (err) log.e(err);
 			log.i('Removing the scrollback-' + branch + ' directory and all config files');
@@ -60,11 +62,6 @@ var deleteDomain = function(branch) { //delete the directory when a pull request
 			if (err) log.e(err);
 			log.i('Removing nginx config files');
 		});
-		try {
-			childProcess.execSync('sudo service ' + branch + ' stop');
-		} catch (err) {
-			log.e(err.message);
-		}
 		childProcess.exec('sudo rm -rf /etc/init/ ' + branch + '.conf /var/run/scrollback-' + branch, function(err) {
 			if (err) log.e(err);
 			log.i('Removing upstart config files');
@@ -93,7 +90,9 @@ var updateDomain = function(branch, pullRequestNo) { //upadate the directory
 				childProcess.execSync('gulp');
 			} catch (err) {
 				log.i(err.message);
-				startScrollback(branch, pullRequestNo);
+				startScrollback(branch, pullRequestNo, function() {
+					log.e('Restarting ' + branch + '.stage.scrollback.io ...');
+				});
 				return;
 			}
 			//starting scrollback
@@ -150,7 +149,9 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 								}
 							});
 							process.chdir(config.baseDir + 'scrollback-' + branch);
-							startScrollback(branch, pullRequestNo);
+							startScrollback(branch, function() {
+								gitcomment.gitComment(branch, pullRequestNo);
+							});
 						}
 
 					};
