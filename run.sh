@@ -28,5 +28,8 @@ else
 	sleep 1	
 	sudo cp $1.conf /etc/init/$1.conf
 	echo 'cp' $1.conf /etc/init/$1.conf
+
+	sudo cp $1.nginx.conf /etc/nginx/sites-enabled/scrollback-$1
+	echo 'cp' $1.nginx.conf /etc/nginx/sites-enabled/scrollback-$1
 fi
 
