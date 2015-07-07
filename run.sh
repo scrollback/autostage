@@ -17,14 +17,14 @@ else
 	touch scrollback-$1/logs/nginx/error.log
 	echo scrollback-$1/logs/nginx/error.log
 	sleep 1
-	sudo mkdir -p /var/run/$1
-	echo 'mkdir -p' /var/run/$1
+	sudo mkdir -p /var/run/scrollback-$1
+	echo 'mkdir -p' /var/run/scrollback-$1
 	sleep 1	
-	sudo touch /var/run/$1/$1.pid
-	echo  'touch' /var/run/$1/$1.pid
+	sudo touch /var/run/scrollback-$1/$1.pid
+	echo  'touch' /var/run/scrollback-$1/$1.pid
 	sleep 1
-	sudo chown -R $user /var/run/$1
-	echo  'chown -R' $user /var/run/$1
+	sudo chown -R $user /var/run/scrollback-$1
+	echo  'chown -R' $user /var/run/scrollback-$1
 	sleep 1	
 	sudo cp $1.conf /etc/init/$1.conf
 	echo 'cp' $1.conf /etc/init/$1.conf

@@ -52,16 +52,22 @@ var deleteDomain = function(branch) { //delete the directory when a pull request
 	process.chdir(config.baseDir);
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
 
-		childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf', function(err) {
+		childProcess.exec('rm -rf scrollback-' + branch + ' ' + branch + '.nginx.conf ' + branch + '.conf', function(err) {
 			if (err) log.e(err);
-			log.i('deleting the scrollback-' + branch + ' directory and all config files');
+			log.i('Removing the scrollback-' + branch + ' directory and all config files');
 		});
-		childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.stage.scrollback.io', function(err) {
-			if (err) log.e(err);
-			log.i('deleting the nginx files');
-		});
+		childProcess.exec('sudo rm -rf ' + config.nginxDir + branch + '.stage.scrollback.io /etc/init/' + branch +
+			'.conf /var/run/scrollback-' + branch,
+			function(err) {
+				if (err) log.e(err);
+				log.i('Removing nginx & upstart config files');
+			});
 
-		childProcess.execSync('sudo stop ' + branch);
+		try {
+			childProcess.execSync('sudo stop ' + branch);
+		} catch (err) {
+			log.e(err.message);
+		}
 
 		if (scrollbackProcesses[branch]) {
 			scrollbackProcesses[branch].kill();
@@ -175,7 +181,7 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 				config.baseDir + branch + '.nginx.conf',
 				function(line) { // line transform function
 					return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
-					// inside the file, write server_name $branch.stage.scrollack.io
+					// inside the file, replace $branch with branch name and $port with port no
 				},
 				createCallback()
 			);
@@ -185,7 +191,7 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 				config.baseDir + branch + '.conf',
 				function(line) { // line transform function
 					return line.replace(/\$branch\b/g, branch);
-					// inside the file, write server_name $branch.stage.scrollack.io
+					// inside the file, replace $branch with branch name
 				},
 
 				createCallback()
