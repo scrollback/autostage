@@ -34,7 +34,7 @@ function line(args) {
 			(new Error()).stack.
 		replace(/.*(Error|node_modules|logger|native).*\n/g, ''). // remove lines with these words
 		replace(/\n[\s\S]*$/, ''). // take the first line
-		replace(/^[\s\S]*?\/home\/scrollback\/autostage\//, ''). // relative path
+		replace(/^[\s\S]*?\/home\/ubuntu\/autostage\//, ''). // relative path
 		replace(/^.*\s+at\s*/, '').
 		replace(/[\)\(]/g, '')
 	],
