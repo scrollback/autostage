@@ -12,20 +12,21 @@ var fs = require('fs'),
 var startScrollback = function(branch, cb) {
 	//process.chdir(config.baseDir + 'scrollback-' + branch);
 	childProcess.execSync('rm -rf node_modules/');
-	//	try {
-	//		//installing npm
-	//		log.i('installing npm module...');
-	//		childProcess.execSync('npm install');
-	//	} catch (err) {
-	//		log.e(err.message);
-	//	}
-	//	try {
-	//		//installingg bower
-	//		log.i('installing bower...');
-	//		childProcess.execSync('bower install');
-	//	} catch (err) {
-	//		log.e(err.message);
-	//	}
+	try {
+		//installing npm
+		log.i('installing npm module...');
+		childProcess.execSync('npm install');
+	} catch (err) {
+		log.e(err.message);
+	}
+	try {
+		//installingg bower
+		log.i('installing bower...');
+		childProcess.execSync('bower install');
+	} catch (err) {
+		log.e(err.message);
+	}
+
 
 	try {
 		//running gulp files
