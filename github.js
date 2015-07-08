@@ -96,7 +96,7 @@ var updateDomain = function(branch, pullRequestNo) { //upadate the directory
 				childProcess.execSync('gulp');
 			} catch (err) {
 				log.i(err.message);
-				startScrollback(branch, pullRequestNo, function() {
+				startScrollback(branch, function() {
 					log.e('Restarting ' + branch + '.stage.scrollback.io ...');
 				});
 				return;
