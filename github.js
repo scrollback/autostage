@@ -42,7 +42,7 @@ var startScrollback = function(branch, cb) {
 	} catch (err) {
 		log.e(err.message);
 	}
-	log.i(scrollbackProcesses);
+	log.i(scrollbackProcesses[branch].toString('utf-8'));
 	cb();
 
 };
