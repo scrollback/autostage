@@ -1,6 +1,9 @@
+"use strict";
 var http = require('http'),
 	github = require('./github.js'),
-	gitcomit = require('./git-comment.js'),
+	config = require('./config.js'),
+	log = require('./logger.js'),
+	teamMembers = config.teamMembers,
 	server = http.createServer(function(req, res) {
 		var response = [];
 		if (req.method === "POST" && req.headers && (/^GitHub/).test(req.headers["user-agent"])) {
@@ -8,24 +11,18 @@ var http = require('http'),
 				response.push(data.toString("utf-8"));
 
 			});
-
 			req.on('end', function() {
 				var data = response.join("");
 				data = JSON.parse(data.toString('utf-8'));
 
 				var user = data.sender.login,
 					pullRequestNo = data.pull_request.number,
-					state = data.pull_request.state,
+					state = data.action,
 					branch = data.pull_request.head.ref;
-
-				console.log(user, branch, pullRequestNo, state);
-				if (state === 'open') {
-					github.createDomain(user, branch, pullRequestNo);
-					gitcomit.gitComment(branch, pullRequestNo);
-				}
-				else github.deleteDomain(branch);
-				console.log('Request ended');
-
+				log.i(user, state, branch);
+				if (teamMembers.indexOf(user) < 0) return;
+				github.autostage(state, branch, pullRequestNo);
+				log.i('Request ended');
 				res.end('Autostage Server');
 			});
 
@@ -33,8 +30,6 @@ var http = require('http'),
 				console.log('connection closed');
 			});
 		}
-
-
 		req.on("err", function() {
 			console.log("err");
 		});
