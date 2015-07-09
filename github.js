@@ -184,6 +184,17 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 				createCallback()
 			);
 
+
+			copyFile(
+				config.baseDir + 'scrollback-' + branch + '/lib/logger.js',
+				config.baseDir + 'scrollback-' + branch + '/lib/logger.js',
+				function(line) { // line transform function
+					return line.replace(/email && isProduction\(\)/, "email");
+					// inside the file, write server_name $branch.stage.scrollack.io
+				},
+				createCallback()
+			);
+
 			copyFile(
 				config.baseDir + 'scrollback-' + branch + '/tools/nginx.conf',
 				config.baseDir + branch + '.nginx.conf',
