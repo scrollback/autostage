@@ -189,7 +189,7 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 				config.baseDir + 'scrollback-' + branch + '/lib/logger.js',
 				config.baseDir + 'scrollback-' + branch + '/lib/logger.js',
 				function(line) { // line transform function
-					return line.replace(/email && isProduction\(\)/, "email");
+					return line.replace(/email && isProduction\(\)/, "email").replace(/Error logs/, 'Error logs from ' + branch + ' server');
 					// inside the file, write server_name $branch.stage.scrollack.io
 				},
 				createCallback()
