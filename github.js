@@ -96,6 +96,7 @@ var updateDomain = function(branch, pullRequestNo) { //upadate the directory
 				childProcess.execSync('gulp');
 			} catch (err) {
 				log.i(err.message);
+				childProcess.execSync('sudo service ' + branch + ' stop');
 				startScrollback(branch, function() {
 					log.e('Restarting ' + branch + '.stage.scrollback.io ...');
 				});
