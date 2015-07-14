@@ -104,7 +104,12 @@ var updateDomain = function(branch, pullRequestNo) { //upadate the directory
 			}
 			//starting scrollback
 			log.i('Restarting ' + branch + '.stage.scrollback.io ...');
-			childProcess.execSync('sudo restart ' + branch);
+			try {
+				childProcess.execSync('sudo restart ' + branch);
+			} catch (er) {
+				childProcess.execSync('sudo start ' + branch);
+			}
+
 		});
 	} else createDomain(branch, pullRequestNo);
 };
