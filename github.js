@@ -96,6 +96,7 @@ var updateDomain = function(branch, pullRequestNo) { //upadate the directory
 				childProcess.execSync('gulp');
 			} catch (err) {
 				log.i(err.message);
+				childProcess.execSync('sudo service ' + branch + ' stop');
 				startScrollback(branch, function() {
 					log.e('Restarting ' + branch + '.stage.scrollback.io ...');
 				});
@@ -103,7 +104,13 @@ var updateDomain = function(branch, pullRequestNo) { //upadate the directory
 			}
 			//starting scrollback
 			log.i('Restarting ' + branch + '.stage.scrollback.io ...');
-			childProcess.execSync('sudo restart ' + branch);
+			try {
+				childProcess.execSync('sudo restart ' + branch);
+			} catch (err) {
+				log.e(err.message);
+				childProcess.execSync('sudo start ' + branch);
+			}
+
 		});
 	} else createDomain(branch, pullRequestNo);
 };
@@ -179,6 +186,17 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 				config.baseDir + 'scrollback-' + branch + '/client-config.js',
 				function(line) { // line transform function
 					return line.replace(/\$branch\b/g, branch);
+					// inside the file, write server_name $branch.stage.scrollack.io
+				},
+				createCallback()
+			);
+
+
+			copyFile(
+				config.baseDir + 'scrollback-' + branch + '/lib/logger.js',
+				config.baseDir + 'scrollback-' + branch + '/lib/logger.js',
+				function(line) { // line transform function
+					return line.replace(/email && isProduction\(\)/, "email").replace(/Error logs/, 'Error logs from ' + branch + ' server');
 					// inside the file, write server_name $branch.stage.scrollack.io
 				},
 				createCallback()
