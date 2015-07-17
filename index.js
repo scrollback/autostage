@@ -4,6 +4,7 @@ var http = require('http'),
 	config = require('./config.js'),
 	log = require('./logger.js'),
 	teamMembers = config.teamMembers,
+	state, branch,
 	server = http.createServer(function(req, res) {
 		var response = [];
 		if (req.method === "POST" && req.headers && (/^GitHub/).test(req.headers["user-agent"])) {
@@ -15,13 +16,27 @@ var http = require('http'),
 				var data = response.join("");
 				data = JSON.parse(data.toString('utf-8'));
 
-				var user = data.sender.login,
-					pullRequestNo = data.pull_request.number,
-					state = data.action,
+				if (data.pusher && data.pusher.name === 'scrollbackbot') {
+
+					branch = data.ref.replace(/^refs\/heads\//, "");
+					if (data.created) {
+						state = "opened";
+					} else if (!data.created && !data.deleted) {
+						state = 'synchronize';
+					} else state = 'closed';
+					github.autostage(state, branch, 527, "release");
+					log.i(data.pusher.name, state, branch);
+				} else if(data.pull_request){
+					var user = data.sender.login,
+						pullRequestNo = data.pull_request.number;
 					branch = data.pull_request.head.ref;
-				log.i(user, state, branch);
-				if (teamMembers.indexOf(user) < 0) return;
-				github.autostage(state, branch, pullRequestNo);
+					state = data.action;
+					log.i(user, state, branch);
+					if (teamMembers.indexOf(user) < 0) return;
+					github.autostage(state, branch, pullRequestNo);
+				}else{
+					return;
+				}
 				log.i('Request ended');
 				res.end('Autostage Server');
 			});

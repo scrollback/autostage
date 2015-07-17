@@ -7,6 +7,7 @@ var fs = require('fs'),
 	gitcomment = require('./git-comment.js'),
 	config = require('./config.js'),
 	log = require('./logger.js'),
+	dir,
 	scrollbackProcesses = {};
 
 var startScrollback = function(branch, cb) {
@@ -39,10 +40,10 @@ var startScrollback = function(branch, cb) {
 	log.i('Staging your branch ' + branch);
 	try {
 		scrollbackProcesses[branch] = childProcess.execSync('sudo start ' + branch);
+		log.i(scrollbackProcesses[branch].toString('utf-8'));
 	} catch (err) {
 		log.e(err.message);
 	}
-	log.i(scrollbackProcesses[branch].toString('utf-8'));
 	cb();
 
 };
@@ -84,39 +85,57 @@ var deleteDomain = function(branch) { //delete the directory when a pull request
 	}
 };
 
-var updateDomain = function(branch, pullRequestNo) { //upadate the directory
-	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
-		process.chdir(config.baseDir + 'scrollback-' + branch);
+var updateDomain = function(branch, pullRequestNo, release) { //upadate the directory
+	if (release) dir = release;
+	else dir = branch;
+	if (fs.existsSync(config.baseDir + 'scrollback-' + dir)) {
+		process.chdir(config.baseDir + 'scrollback-' + dir);
 		log.i(process.cwd());
 		childProcess.exec('git pull', function() {
-			log.i("updating the repository");
+			log.i("updating the repository scrollback-" + dir);
 			try {
 				//running gulp files
 				log.i('running gulp...');
 				childProcess.execSync('gulp');
 			} catch (err) {
 				log.i(err.message);
-				childProcess.execSync('sudo service ' + branch + ' stop');
-				startScrollback(branch, function() {
-					log.e('Restarting ' + branch + '.stage.scrollback.io ...');
+				try {
+					childProcess.execSync('sudo service ' + dir + ' stop');
+				} catch (err2) {
+					log.e(err2.message);
+				}
+				startScrollback(dir, function() {
+					log.e('Restarting ' + dir + '.stage.scrollback.io ...');
 				});
 				return;
 			}
 			//starting scrollback
-			log.i('Restarting ' + branch + '.stage.scrollback.io ...');
+			log.i('Restarting ' + dir + '.stage.scrollback.io ...');
 			try {
-				childProcess.execSync('sudo restart ' + branch);
+				childProcess.execSync('sudo restart ' + dir);
 			} catch (err) {
 				log.e(err.message);
-				childProcess.execSync('sudo start ' + branch);
+				try {
+					childProcess.execSync('sudo start ' + dir);
+				} catch (err2) {
+					log.e(err2.message);
+				}
+
 			}
 
 		});
+	} else if (release) {
+		createDomain(branch, pullRequestNo, release);
 	} else createDomain(branch, pullRequestNo);
 };
 
-var createDomain = function(branch, pullRequestNo) { //create a new directory
+var createDomain = function(branch, pullRequestNo, release) { //create a new directory
 	var port = 7000 + pullRequestNo;
+
+	if (release) {
+		dir = release;
+	} else dir = branch;
+
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
 		updateDomain(branch, pullRequestNo);
 		return;
@@ -138,9 +157,9 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 	process.chdir(config.baseDir);
 	childProcess.exec(
 		'git clone --depth 1 --branch ' + branch +
-		' https://github.com/scrollback/scrollback.git scrollback-' + branch,
+		' https://github.com/scrollback/scrollback.git scrollback-' + dir,
 		function(err1) {
-			log.i("cloning ur branch...");
+			log.i("cloning ur branch into scrollback-" + dir);
 			if (err1 !== null) {
 				log.e('Error occured while checking out ' + branch, err1.message);
 				return;
@@ -153,7 +172,7 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 					return function() {
 						numOps--;
 						if (numOps === 0) {
-							nginxOp(branch, function() {
+							nginxOp(dir, function() {
 								log.i('reload nginx');
 								try {
 									childProcess.execSync("sudo nginx -s reload");
@@ -161,8 +180,9 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 									log.e(err.message);
 								}
 							});
-							process.chdir(config.baseDir + 'scrollback-' + branch);
-							startScrollback(branch, function() {
+							process.chdir(config.baseDir + 'scrollback-' + dir);
+							startScrollback(dir, function() {
+								if (release) return;
 								gitcomment.gitComment(branch, pullRequestNo);
 							});
 						}
@@ -172,20 +192,20 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 			})();
 
 			copyFile(
-				config.baseDir + 'scrollback-' + branch + '/server-config.template.js',
-				config.baseDir + 'scrollback-' + branch + '/server-config.js',
+				config.baseDir + 'scrollback-' + dir + '/server-config.template.js',
+				config.baseDir + 'scrollback-' + dir + '/server-config.js',
 				function(line) { // line transform function
-					return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
+					return line.replace(/\$branch\b/g, dir).replace(/\$port\b/g, port);
 					// inside the file, write server_name $branch.stage.scrollack.io
 				},
 				createCallback()
 			);
 
 			copyFile(
-				config.baseDir + 'scrollback-' + branch + '/client-config.template.js',
-				config.baseDir + 'scrollback-' + branch + '/client-config.js',
+				config.baseDir + 'scrollback-' + dir + '/client-config.template.js',
+				config.baseDir + 'scrollback-' + dir + '/client-config.js',
 				function(line) { // line transform function
-					return line.replace(/\$branch\b/g, branch);
+					return line.replace(/\$branch\b/g, dir);
 					// inside the file, write server_name $branch.stage.scrollack.io
 				},
 				createCallback()
@@ -193,8 +213,8 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 
 
 			copyFile(
-				config.baseDir + 'scrollback-' + branch + '/lib/logger.js',
-				config.baseDir + 'scrollback-' + branch + '/lib/logger.js',
+				config.baseDir + 'scrollback-' + dir + '/lib/logger.js',
+				config.baseDir + 'scrollback-' + dir + '/lib/logger.js',
 				function(line) { // line transform function
 					return line.replace(/email && isProduction\(\)/, "email").replace(/Error logs/, 'Error logs from ' + branch + ' server');
 					// inside the file, write server_name $branch.stage.scrollack.io
@@ -203,20 +223,20 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 			);
 
 			copyFile(
-				config.baseDir + 'scrollback-' + branch + '/tools/nginx.conf',
-				config.baseDir + branch + '.nginx.conf',
+				config.baseDir + 'scrollback-' + dir + '/tools/nginx.conf',
+				config.baseDir + dir + '.nginx.conf',
 				function(line) { // line transform function
-					return line.replace(/\$branch\b/g, branch).replace(/\$port\b/g, port);
+					return line.replace(/\$branch\b/g, dir).replace(/\$port\b/g, port);
 					// inside the file, replace $branch with branch name and $port with port no
 				},
 				createCallback()
 			);
 
 			copyFile(
-				config.baseDir + 'scrollback-' + branch + '/tools/scrollback.template.conf',
-				config.baseDir + branch + '.conf',
+				config.baseDir + 'scrollback-' + dir + '/tools/scrollback.template.conf',
+				config.baseDir + dir + '.conf',
 				function(line) { // line transform function
-					return line.replace(/\$branch\b/g, branch);
+					return line.replace(/\$branch\b/g, dir);
 					// inside the file, replace $branch with branch name
 				},
 
@@ -227,10 +247,26 @@ var createDomain = function(branch, pullRequestNo) { //create a new directory
 		});
 };
 
-exports.autostage = function(state, branch, pullRequestNo) {
-	if (state === 'opened' || state === 'reopened') createDomain(branch, pullRequestNo);
+exports.autostage = function(state, branch, pullRequestNo, release) {
+	//	console.log(arguments)
+	if (state === 'opened' || state === 'reopened') {
+		if (release) {
+			if (fs.existsSync(config.baseDir + 'scrollback-' + release)) {
+
+				childProcess.exec('rm -rf '+config.baseDir+ 'scrollback-' + release, function(err){
+					if (err){
+						log.e(err);
+					}
+					log.i("deleting previous release directory and creating a new one");
+					createDomain(branch, pullRequestNo, release);
+				});
+			}else createDomain(branch, pullRequestNo, release);
+
+		} else createDomain(branch, pullRequestNo);
+	}
 	if (state === "synchronize") {
-		updateDomain(branch, pullRequestNo);
+		if (release) updateDomain(branch, pullRequestNo, release);
+		else updateDomain(branch, pullRequestNo);
 		return;
 	}
 	if (state === 'closed') {
