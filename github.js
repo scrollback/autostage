@@ -4,7 +4,7 @@
 "use strict";
 var fs = require('fs'),
 	childProcess = require('child_process'),
-	gitcomment = require('./git-comment.js'),
+	gitcomment = require('./git-api.js')[0],
 	config = require('./config.js'),
 	log = require('./logger.js'),
 	dir,
@@ -27,7 +27,6 @@ var startScrollback = function(branch, cb) {
 	} catch (err) {
 		log.e(err.message);
 	}
-
 
 	try {
 		//running gulp files
@@ -155,11 +154,12 @@ var createDomain = function(branch, pullRequestNo, release) { //create a new dir
 	};
 
 	process.chdir(config.baseDir);
+	log.i("cloning ur branch into scrollback-" + dir);
 	childProcess.exec(
 		'git clone --depth 1 --branch ' + branch +
 		' https://github.com/scrollback/scrollback.git scrollback-' + dir,
 		function(err1) {
-			log.i("cloning ur branch into scrollback-" + dir);
+			log.i("scrollback-" + dir+" created");
 			if (err1 !== null) {
 				log.e('Error occured while checking out ' + branch, err1.message);
 				return;
@@ -183,7 +183,7 @@ var createDomain = function(branch, pullRequestNo, release) { //create a new dir
 							process.chdir(config.baseDir + 'scrollback-' + dir);
 							startScrollback(dir, function() {
 								if (release) return;
-								gitcomment.gitComment(branch, pullRequestNo);
+								//gitcomment(branch, pullRequestNo);
 							});
 						}
 
