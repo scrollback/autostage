@@ -36,7 +36,7 @@ var startScrollback = function(branch, cb) {
 		log.e(err.message);
 	}
 	//starting scrollback
-	log.i('Staging your branch ' + branch);
+	log.i('Autostaging the '+ branch+ ' branch ' );
 	try {
 		scrollbackProcesses[branch] = childProcess.execSync('sudo start ' + branch);
 		log.i(scrollbackProcesses[branch].toString('utf-8'));
@@ -134,7 +134,7 @@ var createDomain = function(branch, pullRequestNo, release) { //create a new dir
 	if (release) {
 		dir = release;
 	} else dir = branch;
-
+	log.i("cloning ur branch into scrollback-" + dir);
 	if (fs.existsSync(config.baseDir + 'scrollback-' + branch)) {
 		updateDomain(branch, pullRequestNo);
 		return;
@@ -154,7 +154,6 @@ var createDomain = function(branch, pullRequestNo, release) { //create a new dir
 	};
 
 	process.chdir(config.baseDir);
-	log.i("cloning ur branch into scrollback-" + dir);
 	childProcess.exec(
 		'git clone --depth 1 --branch ' + branch +
 		' https://github.com/scrollback/scrollback.git scrollback-' + dir,
@@ -250,6 +249,7 @@ var createDomain = function(branch, pullRequestNo, release) { //create a new dir
 exports.autostage = function(state, branch, pullRequestNo, release) {
 	//	console.log(arguments)
 	if (state === 'opened' || state === 'reopened') {
+
 		if (release) {
 			if (fs.existsSync(config.baseDir + 'scrollback-' + release)) {
 
