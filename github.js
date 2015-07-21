@@ -182,7 +182,7 @@ var createDomain = function(branch, pullRequestNo, release) { //create a new dir
 							process.chdir(config.baseDir + 'scrollback-' + dir);
 							startScrollback(dir, function() {
 								if (release) return;
-								//gitcomment(branch, pullRequestNo);
+								gitcomment(branch, pullRequestNo);
 							});
 						}
 
