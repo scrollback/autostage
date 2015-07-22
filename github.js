@@ -17,6 +17,7 @@ var startScrollback = function(branch, cb) {
 		//installing npm
 		log.i('installing npm module...');
 		childProcess.execSync('npm install');
+		//childProcess.execSync('npm rebuild node-sass');
 	} catch (err) {
 		log.e(err.message);
 	}
@@ -249,11 +250,9 @@ var createDomain = function(branch, pullRequestNo, release) { //create a new dir
 exports.autostage = function(state, branch, pullRequestNo, release) {
 	//	console.log(arguments)
 	if (state === 'opened' || state === 'reopened') {
-
-		if (release) {
+		if (release) { //check if its a release branch
 			if (fs.existsSync(config.baseDir + 'scrollback-' + release)) {
-
-				childProcess.exec('rm -rf '+config.baseDir+ 'scrollback-' + release, function(err){
+				childProcess.exec('rm -rf '+config.baseDir+ 'scrollback-' + release, function(err){ //delete the previous release branch directory
 					if (err){
 						log.e(err);
 					}
@@ -265,8 +264,9 @@ exports.autostage = function(state, branch, pullRequestNo, release) {
 		} else createDomain(branch, pullRequestNo);
 	}
 	if (state === "synchronize") {
-		if (release) updateDomain(branch, pullRequestNo, release);
-		else updateDomain(branch, pullRequestNo);
+//		if (release) updateDomain(branch, pullRequestNo, release);
+//		else
+		updateDomain(branch, pullRequestNo);
 		return;
 	}
 	if (state === 'closed') {

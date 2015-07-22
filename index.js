@@ -18,18 +18,16 @@ var http = require('http'),
 				data = JSON.parse(data.toString('utf-8'));
 
 				if (data.pusher) {
-
 					var release_branch = data.ref.replace(/^refs\/heads\//, "");
 					if((/^r\d\.([1-9]|1[1-2])\.[1-9]\d*$/).test(release_branch)){
 						if (data.created) {
 							state = "opened";
+							github.autostage(state, release_branch, 527, "release");
 						} else if (!data.created && !data.deleted) {
-							state = 'synchronize';
 							autopr(release_branch);
 							return;
-						} else state = 'closed';
+						}
 						log.i(data.pusher.name, state, release_branch);
-						github.autostage(state, release_branch, 527, "release");
 					}
 				} else if (data.pull_request) {
 					var user = data.sender.login,
