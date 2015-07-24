@@ -25,6 +25,7 @@ var startScrollback = function(branch, cb) {
 		//installingg bower
 		log.i('installing bower...');
 		childProcess.execSync('bower install');
+
 	} catch (err) {
 		log.e(err.message);
 	}
@@ -35,6 +36,8 @@ var startScrollback = function(branch, cb) {
 		childProcess.execSync('gulp');
 	} catch (err) {
 		log.e(err.message);
+		childProcess.execSync('npm rebuild node-sass');
+		childProcess.execSync('gulp');
 	}
 	//starting scrollback
 	log.i('Autostaging the '+ branch+ ' branch ' );
@@ -251,6 +254,7 @@ exports.autostage = function(state, branch, pullRequestNo, release) {
 	//	console.log(arguments)
 	if (state === 'opened' || state === 'reopened') {
 		if (release) { //check if its a release branch
+			childProcess.execSync('sudo stop release');
 			if (fs.existsSync(config.baseDir + 'scrollback-' + release)) {
 				childProcess.exec('rm -rf '+config.baseDir+ 'scrollback-' + release, function(err){ //delete the previous release branch directory
 					if (err){

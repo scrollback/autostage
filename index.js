@@ -26,7 +26,7 @@ var http = require('http'),
 						} else if (!data.created && !data.deleted) {
 							autopr(release_branch);
 							return;
-						}
+						}else return;
 						log.i(data.pusher.name, state, release_branch);
 					}
 				} else if (data.pull_request) {
