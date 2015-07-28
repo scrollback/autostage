@@ -40,7 +40,7 @@ var startScrollback = function(branch, cb) {
 		childProcess.execSync('gulp');
 	}
 	//starting scrollback
-	log.i('Autostaging the '+ branch+ ' branch ' );
+	log.i('Autostaging the ' + branch + ' branch ');
 	try {
 		scrollbackProcesses[branch] = childProcess.execSync('sudo start ' + branch);
 		log.i(scrollbackProcesses[branch].toString('utf-8'));
@@ -162,7 +162,7 @@ var createDomain = function(branch, pullRequestNo, release) { //create a new dir
 		'git clone --depth 1 --branch ' + branch +
 		' https://github.com/scrollback/scrollback.git scrollback-' + dir,
 		function(err1) {
-			log.i("scrollback-" + dir+" created");
+			log.i("scrollback-" + dir + " created");
 			if (err1 !== null) {
 				log.e('Error occured while checking out ' + branch, err1.message);
 				return;
@@ -195,7 +195,7 @@ var createDomain = function(branch, pullRequestNo, release) { //create a new dir
 			})();
 
 			copyFile(
-				config.baseDir + 'scrollback-' + dir + '/server-config.template.js',
+				config.baseDir + 'scrollback-' + dir + '/server-config-template.js',
 				config.baseDir + 'scrollback-' + dir + '/server-config.js',
 				function(line) { // line transform function
 					return line.replace(/\$branch\b/g, dir).replace(/\$port\b/g, port);
@@ -205,7 +205,7 @@ var createDomain = function(branch, pullRequestNo, release) { //create a new dir
 			);
 
 			copyFile(
-				config.baseDir + 'scrollback-' + dir + '/client-config.template.js',
+				config.baseDir + 'scrollback-' + dir + '/client-config-template.js',
 				config.baseDir + 'scrollback-' + dir + '/client-config.js',
 				function(line) { // line transform function
 					return line.replace(/\$branch\b/g, dir);
@@ -256,20 +256,20 @@ exports.autostage = function(state, branch, pullRequestNo, release) {
 		if (release) { //check if its a release branch
 			childProcess.execSync('sudo stop release');
 			if (fs.existsSync(config.baseDir + 'scrollback-' + release)) {
-				childProcess.exec('rm -rf '+config.baseDir+ 'scrollback-' + release, function(err){ //delete the previous release branch directory
-					if (err){
+				childProcess.exec('rm -rf ' + config.baseDir + 'scrollback-' + release, function(err) { //delete the previous release branch directory
+					if (err) {
 						log.e(err);
 					}
 					log.i("deleting previous release directory and creating a new one");
 					createDomain(branch, pullRequestNo, release);
 				});
-			}else createDomain(branch, pullRequestNo, release);
+			} else createDomain(branch, pullRequestNo, release);
 
 		} else createDomain(branch, pullRequestNo);
 	}
 	if (state === "synchronize") {
-//		if (release) updateDomain(branch, pullRequestNo, release);
-//		else
+		//		if (release) updateDomain(branch, pullRequestNo, release);
+		//		else
 		updateDomain(branch, pullRequestNo);
 		return;
 	}
