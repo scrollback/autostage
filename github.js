@@ -254,7 +254,11 @@ exports.autostage = function(state, branch, pullRequestNo, release) {
 	//	console.log(arguments)
 	if (state === 'opened' || state === 'reopened') {
 		if (release) { //check if its a release branch
-			childProcess.execSync('sudo stop release');
+			try{
+				childProcess.execSync('sudo stop release');
+			}catch(err1){
+				log.e(err1.message);
+			}	
 			if (fs.existsSync(config.baseDir + 'scrollback-' + release)) {
 				childProcess.exec('rm -rf ' + config.baseDir + 'scrollback-' + release, function(err) { //delete the previous release branch directory
 					if (err) {
