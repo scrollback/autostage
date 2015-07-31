@@ -29,12 +29,14 @@ var http = require('http'),
 							log.i(user, state, release_branch);
 							github.autostage(state, release_branch, 527, "release");
 						} else if (!data.created && !data.deleted) {
+							state = "hotfix";
 							log.i(user, state, release_branch);
-							log.i("create auto pr only for latest commit");
+							log.i("create auto pr only for "+sha+" commit");
 							github.hotfix(release_branch, sha, user);
 							return;
 						} else return;
 					} else if (data.pusher.name === "scrollbackbot") {
+						state = "auto PR with this commit only";
 						log.i(user, state, release_branch);
 						autopr(release_branch, commitMessage);
 					}
