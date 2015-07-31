@@ -300,7 +300,7 @@ var nginxOp = function(branch, callback) {
 };
 
 exports.hotfix = function(releaseBranch, sha, user){
-	log.i("creating a pull request with latest commit only")
+	log.i("creating a pull request with "+sha+" commit only")
 	var newBranch = releaseBranch+"-"+user;
 	process.chdir(config.baseDir+"scrollback");
 	try{
