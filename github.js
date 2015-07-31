@@ -298,3 +298,12 @@ var nginxOp = function(branch, callback) {
 	log.i("can start your server with upstart");
 	callback();
 };
+
+exports.hotfix = function(releaseBranch, sha, user){
+	var newBranch = releaseBranch+"-"+user;
+	process.chdir(config.baseDir+"scrollback");
+	childProcess.execSync("git pull");
+	childProcess.execSync("git checkout -b "+newBranch+" master");
+	childProcess.execSync("git cherry-pick "+ sha);
+	childProcess.execSync("git push origin "+newBranch);
+}

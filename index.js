@@ -18,16 +18,23 @@ var http = require('http'),
 				data = JSON.parse(data.toString('utf-8'));
 
 				if (data.pusher) {
-					var release_branch = data.ref.replace(/^refs\/heads\//, "");
-					if((/^r\d\.([1-9]|1[1-2])\.[1-9]\d*$/).test(release_branch)){
+					var user = data.pusher.name,
+						commitMessage = data.head_commit.message,
+						sha = data.head_commit.id,
+						release_branch = data.ref.replace(/^refs\/heads\//, "");
+					console.log((/^r\d\.([1-9]|1[1-2])\.[1-9]\d*$/).test(release_branch));
+					if ((/^r\d\.([1-9]|1[1-2])\.[1-9]\d*$/).test(release_branch)) {
 						if (data.created) {
 							state = "opened";
 							github.autostage(state, release_branch, 527, "release");
 						} else if (!data.created && !data.deleted) {
-							autopr(release_branch);
+							github.hotfix(release_branch, sha, user);
 							return;
-						}else return;
+						} else return;
 						log.i(data.pusher.name, state, release_branch);
+
+					} else if (data.pusher.name === "scrollbackbot") {
+						autopr(release_branch, commitMessage);
 					}
 				} else if (data.pull_request) {
 					var user = data.sender.login,

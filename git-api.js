@@ -28,7 +28,7 @@ module.exports = [
 		});
 	},
 
-	function(branch) {
+	function(branch, msg) {
 		request({
 			url: "https://api.github.com/repos/scrollback/scrollback/pulls",
 			auth: {
@@ -41,7 +41,7 @@ module.exports = [
 			},
 			json: true,
 			body: {
-				"title": "creating auto PR on hotfix",
+				"title": msg + "[auto PR]",
 				"head": branch,
 				"base": "master"
 			}
@@ -54,3 +54,6 @@ module.exports = [
 		});
 	}
 ];
+
+
+//git log -n 1 --pretty=format:"%H"
