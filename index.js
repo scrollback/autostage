@@ -30,6 +30,7 @@ var http = require('http'),
 							github.autostage(state, release_branch, 527, "release");
 						} else if (!data.created && !data.deleted) {
 							log.i(user, state, release_branch);
+							log.i("create auto pr only for latest commit");
 							github.hotfix(release_branch, sha, user);
 							return;
 						} else return;
