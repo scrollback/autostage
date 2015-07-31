@@ -26,14 +26,15 @@ var http = require('http'),
 					if ((/^r\d\.([1-9]|1[1-2])\.[1-9]\d*$/).test(release_branch)) {
 						if (data.created) {
 							state = "opened";
+							log.i(user, state, release_branch);
 							github.autostage(state, release_branch, 527, "release");
 						} else if (!data.created && !data.deleted) {
+							log.i(user, state, release_branch);
 							github.hotfix(release_branch, sha, user);
 							return;
 						} else return;
-						log.i(data.pusher.name, state, release_branch);
-
 					} else if (data.pusher.name === "scrollbackbot") {
+						log.i(user, state, release_branch);
 						autopr(release_branch, commitMessage);
 					}
 				} else if (data.pull_request) {

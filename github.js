@@ -300,12 +300,34 @@ var nginxOp = function(branch, callback) {
 };
 
 exports.hotfix = function(releaseBranch, sha, user){
+	log.i("creating a pull request with latest commit only")
 	var newBranch = releaseBranch+"-"+user;
 	process.chdir(config.baseDir+"scrollback");
-	childProcess.execSync("git pull");
-	childProcess.execSync("git checkout "+releaseBranch);
-
-	childProcess.execSync("git checkout -b "+newBranch+" master");
-	childProcess.execSync("git cherry-pick "+ sha);
-	childProcess.execSync("git push origin "+newBranch);
+	try{
+		childProcess.execSync("git pull");
+	} catch(err){
+		log.e(err.message);
+	}
+	try{
+		childProcess.execSync("git checkout "+releaseBranch);
+	} catch(err){
+		log.e(err.message);
+	}
+	try{
+		childProcess.execSync("git checkout -b "+newBranch+" master");
+	} catch(err){
+		log.e(err.message);
+	}
+	try{
+		childProcess.execSync("git cherry-pick "+ sha);
+	}
+	catch(err){
+		log.e(err.message);
+	}
+	try{
+		childProcess.execSync("git push origin "+newBranch);
+	}
+	catch(err){
+		log.e(err.message);
+	}
 }
