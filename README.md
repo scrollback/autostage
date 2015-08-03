@@ -3,7 +3,6 @@
 
 ## Features: 
 * Comments links to autostaged server and integration test.
-* Stages the released branch.
-* Creates auto PR on hotfixes to released branch
+* Stages the release branch.
+* Creates separate auto PRs for each commit by each user on hotfixes to release branch.
 
-	
