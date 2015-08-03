@@ -308,11 +308,11 @@ exports.hotfix = function(releaseBranch, sha, user){
 	} catch(err){
 		log.e(err.message);
 	}
-	try{
-		childProcess.execSync("git checkout "+releaseBranch);
-	} catch(err){
-		log.e(err.message);
-	}
+//	try{
+//		childProcess.execSync("git checkout "+releaseBranch);
+//	} catch(err){
+//		log.e(err.message);
+//	}
 	try{
 		childProcess.execSync("git checkout -b "+newBranch+" master");
 	} catch(err){

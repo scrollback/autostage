@@ -32,7 +32,7 @@ var http = require('http'),
 							state = "hotfix";
 							log.i(user, state, release_branch);
 							log.i("create auto pr only for "+sha+" commit");
-							github.hotfix(release_branch, sha, user);
+							github.hotfix(sha, user);
 							return;
 						} else return;
 					} else if (data.pusher.name === "scrollbackbot") {
