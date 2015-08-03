@@ -304,8 +304,12 @@ exports.hotfix = function(sha, user) {
 	var newBranch = user + "-hotfix";
 	process.chdir(config.baseDir + "scrollback");
 	childProcess.execSync("git pull");
+	try {
+		childProcess.execSync("git checkout -b " + newBranch + " master");
+	} catch (err) {
+		log.e(err.message)
+	}
 
-	childProcess.execSync("git checkout -b " + newBranch + " master");
 
 	childProcess.execSync("git cherry-pick " + sha);
 
