@@ -301,7 +301,7 @@ var nginxOp = function(branch, callback) {
 
 exports.hotfix = function(releaseBranch, sha, user){
 	log.i("creating a pull request with "+sha+" commit only")
-	var newBranch = releaseBranch+"-"+user;
+	var newBranch = user+"-hotfix";
 	process.chdir(config.baseDir+"scrollback");
 	try{
 		childProcess.execSync("git pull");
