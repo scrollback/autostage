@@ -18,10 +18,12 @@ var http = require('http'),
 				data = JSON.parse(data.toString('utf-8'));
 
 				if (data.pusher) {
-					var user = data.pusher.name,
-						commitMessage = data.head_commit.message,
-						sha = data.head_commit.id,
-						release_branch = data.ref.replace(/^refs\/heads\//, "");
+					var user = data.pusher.name;
+					if (data.head_commit) {
+						var commitMessage = data.head_commit.message,
+							sha = data.head_commit.id;
+					}
+					release_branch = data.ref.replace(/^refs\/heads\//, "");
 					console.log((/^r\d\.([1-9]|1[1-2])\.[1-9]\d*$/).test(release_branch));
 					if ((/^r\d\.([1-9]|1[1-2])\.[1-9]\d*$/).test(release_branch)) {
 						if (data.created) {
@@ -31,7 +33,7 @@ var http = require('http'),
 						} else if (!data.created && !data.deleted) {
 							state = "hotfix";
 							log.i(user, state, release_branch);
-							log.i("create auto pr only for "+sha+" commit");
+							log.i("create auto pr only for " + sha + " commit");
 							github.hotfix(sha, user);
 							return;
 						} else return;
