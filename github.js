@@ -308,8 +308,8 @@ exports.hotfix = function(sha, user) {
 		childProcess.execSync("git checkout -b " + newBranch + " master");
 	} catch (err) {
 		log.e(err.message)
+		childProcess.execSync("git checkout " + newBranch);
 	}
-
 
 	childProcess.execSync("git cherry-pick " + sha);
 
