@@ -254,11 +254,11 @@ exports.autostage = function(state, branch, pullRequestNo, release) {
 	//	console.log(arguments)
 	if (state === 'opened' || state === 'reopened') {
 		if (release) { //check if its a release branch
-			try{
+			try {
 				childProcess.execSync('sudo stop release');
-			}catch(err1){
+			} catch (err1) {
 				log.e(err1.message);
-			}	
+			}
 			if (fs.existsSync(config.baseDir + 'scrollback-' + release)) {
 				childProcess.exec('rm -rf ' + config.baseDir + 'scrollback-' + release, function(err) { //delete the previous release branch directory
 					if (err) {
@@ -298,3 +298,23 @@ var nginxOp = function(branch, callback) {
 	log.i("can start your server with upstart");
 	callback();
 };
+
+exports.hotfix = function(sha, user) {
+	log.i("creating a pull request with " + sha + " commit only")
+	var newBranch = user + "-hotfix";
+	process.chdir(config.baseDir + "scrollback");
+	childProcess.execSync("git pull");
+	try {
+		childProcess.execSync("git checkout -b " + newBranch + " master");
+	} catch (err) {
+		log.e(err.message)
+		childProcess.execSync("git checkout " + newBranch);
+	}
+
+	childProcess.execSync("git cherry-pick " + sha);
+
+	childProcess.execSync("git push origin " + newBranch);
+	childProcess.execSync("git checkout master");
+
+
+}
