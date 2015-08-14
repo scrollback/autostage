@@ -24,8 +24,9 @@ var http = require('http'),
 							sha = data.head_commit.id;
 					}
 					var release_branch = data.ref.replace(/^refs\/heads\//, "");
-					console.log((/^r\d\.([1-9]|1[1-2])\.[1-9]\d*$/).test(release_branch));
-					if ((/^r\d\.([1-9]|1[1-2])\.[1-9]\d*$/).test(release_branch)) {
+					console.log(release_branch);
+					console.log((/^r\d\.([1-9]|1[1-2])\.([0-9]|1[1-2])\d*$/).test(release_branch));
+					if ((/^r\d\.([1-9]|1[1-2])\.([0-9]|1[1-2])\d*$/).test(release_branch)) {
 						if (data.created) {
 							state = "opened";
 							log.i(user, state, release_branch);
