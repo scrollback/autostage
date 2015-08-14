@@ -17,7 +17,7 @@ var startScrollback = function(branch, cb) {
 		//installing npm
 		log.i('installing npm module...');
 		childProcess.execSync('npm install');
-		//childProcess.execSync('npm rebuild node-sass');
+		childProcess.execSync('npm rebuild node-sass');
 	} catch (err) {
 		log.e(err.message);
 	}
@@ -36,8 +36,11 @@ var startScrollback = function(branch, cb) {
 		childProcess.execSync('gulp');
 	} catch (err) {
 		log.e(err.message);
+		try{
 		childProcess.execSync('npm rebuild node-sass');
+		childProcess.execSync('npm install');
 		childProcess.execSync('gulp');
+		} catch (err){log.e(err.message)}
 	}
 	//starting scrollback
 	log.i('Autostaging the ' + branch + ' branch ');
@@ -301,7 +304,8 @@ var nginxOp = function(branch, callback) {
 
 exports.hotfix = function(sha, user) {
 	log.i("creating a pull request with " + sha + " commit only")
-	var newBranch = user + "-hotfix";
+	var no = 0;
+	var newBranch = user+no + "-hotfix";
 	process.chdir(config.baseDir + "scrollback");
 	childProcess.execSync("git pull");
 	try {
@@ -315,6 +319,6 @@ exports.hotfix = function(sha, user) {
 
 	childProcess.execSync("git push origin " + newBranch);
 	childProcess.execSync("git checkout master");
-
+	no++;
 
 }
