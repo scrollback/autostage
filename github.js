@@ -35,7 +35,6 @@ var startScrollback = function(branch, cb) {
 		log.i('running gulp...');
 		childProcess.execSync('gulp');
 	} catch (err) {
-		log.e(err.message);
 		try{
 		childProcess.execSync('npm rebuild node-sass');
 		childProcess.execSync('npm install');
@@ -304,21 +303,36 @@ var nginxOp = function(branch, callback) {
 
 exports.hotfix = function(sha, user) {
 	log.i("creating a pull request with " + sha + " commit only")
-	var no = 0;
-	var newBranch = user+no + "-hotfix";
+	var newBranch = user + "-hotfix";
 	process.chdir(config.baseDir + "scrollback");
 	childProcess.execSync("git pull");
 	try {
 		childProcess.execSync("git checkout -b " + newBranch + " master");
 	} catch (err) {
-		log.e(err.message)
-		childProcess.execSync("git checkout " + newBranch);
+		log.e(err.message);
+		var ar = newBranch.split("-");
+		log.e(ar);
+		newBranch = ar[0]+"-"+1+"-"+ar[1];
+
+		log.e(newBranch);
+		try {
+			log.e(newBranch);
+			childProcess.execSync("git checkout -b " + newBranch);
+		} catch(err){
+			log.e(err.message);
+			var arr = newBranch.split("-");
+			log.e(arr);
+			newBranch = arr[0]+"-"+arr[1]+1+"-"+arr[2]
+			log.e(newBranch);
+			childProcess.execSync("git checkout -b " + newBranch);
+		}
+		log.i(newBranch);
+
 	}
 
 	childProcess.execSync("git cherry-pick " + sha);
 
 	childProcess.execSync("git push origin " + newBranch);
 	childProcess.execSync("git checkout master");
-	no++;
 
 }
