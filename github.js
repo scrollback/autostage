@@ -305,6 +305,7 @@ exports.hotfix = function(sha, user) {
 	log.i("creating a pull request with " + sha + " commit only")
 	var newBranch = user + "-hotfix";
 	process.chdir(config.baseDir + "scrollback");
+	childProcess.execSync("git checkout master");
 	childProcess.execSync("git pull");
 	try {
 		childProcess.execSync("git checkout -b " + newBranch + " master");
