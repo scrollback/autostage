@@ -19,14 +19,13 @@ var http = require('http'),
 
 				if (data.pusher) {
 					var user = data.pusher.name;
-					if (data.head_commit) {
-						var commitMessage = data.head_commit.message,
-							sha = data.head_commit.id;
+					if (data.commits.length) {
+						var commitMessage = data.commits[0].message,
+							sha = data.commits[0].id;
 					}
 					var release_branch = data.ref.replace(/^refs\/heads\//, "");
-					console.log(release_branch);
-					console.log((/^r\d\.([1-9]|1[1-2])\.([0-9]|1[1-2])\d*$/).test(release_branch));
-					if ((/^r\d\.([1-9]|1[1-2])\.([0-9]|1[1-2])\d*$/).test(release_branch)) {
+
+					if ((/^r\d\.([1-9]|1[0-2])\.([0-9]|1[1-2])\d*$/).test(release_branch)) {
 						if (data.created) {
 							state = "opened";
 							log.i(user, state, release_branch);
